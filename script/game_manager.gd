@@ -66,6 +66,8 @@ var bet_slider: HSlider
 var bet_value_label: Label
 var info_label: Label
 var end_label: Label
+var history_panel: Panel
+var history_container: VBoxContainer
 
 func _ready():
 	randomize()
@@ -82,13 +84,14 @@ func build_ui():
 	var bg = ColorRect.new()
 	bg.color = Color("1a5c1a")
 	bg.size = get_viewport_rect().size
-	bg.mouse_filter = Control.MOUSE_FILTER_PASS
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
 	var table = ColorRect.new()
 	table.color = Color("2d8c2d")
 	table.size = Vector2(1000, 500)
 	table.position = Vector2(140, 110)
+	table.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(table)
 
 	pot_label = Label.new()
@@ -98,6 +101,7 @@ func build_ui():
 	pot_label.add_theme_color_override("font_color", Color.WHITE)
 	pot_label.position = Vector2(560, 250)
 	pot_label.size = Vector2(200, 40)
+	pot_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(pot_label)
 
 	message_label = Label.new()
@@ -106,6 +110,7 @@ func build_ui():
 	message_label.add_theme_color_override("font_color", Color.WHITE)
 	message_label.position = Vector2(390, 290)
 	message_label.size = Vector2(500, 40)
+	message_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(message_label)
 
 	timer_label = Label.new()
@@ -114,12 +119,14 @@ func build_ui():
 	timer_label.add_theme_color_override("font_color", Color.ORANGE)
 	timer_label.position = Vector2(540, 410)
 	timer_label.size = Vector2(200, 30)
+	timer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(timer_label)
 
 	var comm_bg = ColorRect.new()
 	comm_bg.color = Color(0, 0, 0, 0.3)
 	comm_bg.position = Vector2(738, 322)
 	comm_bg.size = Vector2(240, 140)
+	comm_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(comm_bg)
 
 	community_nodes = []
@@ -134,6 +141,7 @@ func build_ui():
 	action_bar = Control.new()
 	action_bar.position = Vector2(60, 640)
 	action_bar.size = Vector2(860, 80)
+	action_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(action_bar)
 
 	var btn_x = 0
@@ -158,6 +166,7 @@ func build_ui():
 	bet_amt_label.size = Vector2(100, 40)
 	bet_amt_label.add_theme_font_size_override("font_size", 18)
 	bet_amt_label.add_theme_color_override("font_color", Color.WHITE)
+	bet_amt_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_amt_label)
 
 	bet_slider = HSlider.new()
@@ -175,6 +184,7 @@ func build_ui():
 	bet_value_label.add_theme_font_size_override("font_size", 18)
 	bet_value_label.add_theme_color_override("font_color", Color.WHITE)
 	bet_value_label.text = "0"
+	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_value_label)
 
 	discard_button = make_button("Discard & Draw", Vector2(0, 40))
@@ -194,6 +204,7 @@ func build_ui():
 		name_label.add_theme_color_override("font_color", Color.WHITE)
 		if i != 0:
 			name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(name_label)
 
 		var chip_label = Label.new()
@@ -202,10 +213,12 @@ func build_ui():
 		chip_label.add_theme_color_override("font_color", Color.YELLOW)
 		if i != 0:
 			chip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		chip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(chip_label)
 
 		var hand_container = HBoxContainer.new()
 		hand_container.add_theme_constant_override("separation", CARD_GAP)
+		hand_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(hand_container)
 
 		var bet_label = Label.new()
@@ -214,6 +227,7 @@ func build_ui():
 		bet_label.add_theme_color_override("font_color", Color.WHITE)
 		if i != 0:
 			bet_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		bet_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(bet_label)
 
 		player_panel.append({
@@ -231,6 +245,7 @@ func build_ui():
 	info_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
 	info_label.position = Vector2(200, 470)
 	info_label.size = Vector2(880, 80)
+	info_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(info_label)
 
 	end_label = Label.new()
@@ -240,6 +255,7 @@ func build_ui():
 	end_label.position = Vector2(300, 200)
 	end_label.size = Vector2(680, 200)
 	end_label.visible = false
+	end_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(end_label)
 
 	new_round_button = make_button("New Round", Vector2(130, 40))
@@ -253,7 +269,7 @@ func build_ui():
 	steal_overlay = ColorRect.new()
 	steal_overlay.color = Color(0, 0, 0, 0.7)
 	steal_overlay.size = get_viewport_rect().size
-	steal_overlay.mouse_filter = Control.MOUSE_FILTER_PASS
+	steal_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	steal_overlay.visible = false
 	add_child(steal_overlay)
 
@@ -269,16 +285,19 @@ func build_ui():
 	ol_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ol_title.add_theme_font_size_override("font_size", 28)
 	ol_title.add_theme_color_override("font_color", Color.RED)
+	ol_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_container.add_child(ol_title)
 
 	left_player_label = Label.new()
 	left_player_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	left_player_label.add_theme_font_size_override("font_size", 18)
 	left_player_label.add_theme_color_override("font_color", Color.WHITE)
+	left_player_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_container.add_child(left_player_label)
 
 	overlay_hand = HBoxContainer.new()
 	overlay_hand.add_theme_constant_override("separation", 5)
+	overlay_hand.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_container.add_child(overlay_hand)
 
 	steal_confirm_button = make_button("Confirm Steal", Vector2(0, 0))
@@ -289,6 +308,7 @@ func build_ui():
 	overlay_timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	overlay_timer.add_theme_font_size_override("font_size", 20)
 	overlay_timer.add_theme_color_override("font_color", Color.ORANGE)
+	overlay_timer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_container.add_child(overlay_timer)
 
 	stealtimer_label = Label.new()
@@ -297,9 +317,53 @@ func build_ui():
 	stealtimer_label.add_theme_color_override("font_color", Color.ORANGE)
 	stealtimer_label.position = Vector2(540, 340)
 	stealtimer_label.size = Vector2(200, 30)
+	stealtimer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(stealtimer_label)
 
+	history_panel = Panel.new()
+	history_panel.position = Vector2(1220, 550)
+	history_panel.size = Vector2(360, 250)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0.15, 0, 0.7)
+	style.border_color = Color("2d8c2d")
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	history_panel.add_theme_stylebox_override("panel", style)
+	history_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(history_panel)
+
+	history_container = VBoxContainer.new()
+	history_container.position = Vector2(6, 6)
+	history_container.size = Vector2(348, 198)
+	history_container.add_theme_constant_override("separation", 2)
+	history_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	history_panel.add_child(history_container)
+
 	move_child(action_bar, get_child_count() - 1)
+
+func _announce(msg: String):
+	message_label.text = msg
+	if msg != "":
+		_add_to_history(msg)
+
+func _add_to_history(msg: String):
+	var entry = Label.new()
+	entry.text = msg
+	entry.add_theme_font_size_override("font_size", 12)
+	entry.add_theme_color_override("font_color", Color.WHITE)
+	entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	history_container.add_child(entry)
+	history_container.move_child(entry, 0)
+	if history_container.get_child_count() > 8:
+		history_container.get_child(history_container.get_child_count() - 1).queue_free()
 
 func make_button(text: String, pos: Vector2) -> Button:
 	var btn = Button.new()
@@ -313,8 +377,8 @@ func make_card_sprite() -> TextureRect:
 	var tr = TextureRect.new()
 	tr.size = Vector2(CARD_W, CARD_H)
 	tr.custom_minimum_size = Vector2(CARD_W, CARD_H)
-	tr.expand_mode = TextureRect.EXPAND_FIT_WIDTH
-	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
 	tr.mouse_filter = Control.MOUSE_FILTER_STOP
 	return tr
 
@@ -337,7 +401,7 @@ func start_game():
 		player_folded.append(false)
 		player_bets.append(0)
 	update_chip_labels()
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.9).timeout
 	play_round()
 
 func play_round():
@@ -354,7 +418,7 @@ func play_round():
 	await round_end()
 
 func clear_hands():
-	message_label.text = "New round..."
+	_announce("New round...")
 	for i in range(NUM_PLAYERS):
 		player_hands[i] = []
 		player_folded[i] = false
@@ -367,7 +431,7 @@ func clear_hands():
 	pot_label.text = "Pot: 0"
 	community_cards.clear()
 	update_chip_labels()
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.9).timeout
 
 func clear_hand_display(player_idx: int):
 	var container = player_panel[player_idx].hand_container
@@ -377,7 +441,7 @@ func clear_hand_display(player_idx: int):
 	player_hand_nodes[player_idx].clear()
 
 func ante_phase():
-	message_label.text = "Ante phase..."
+	_announce("Ante phase...")
 	for i in range(NUM_PLAYERS):
 		var ante = max(1, int(player_chips[i] * ANTE_PERCENT))
 		ante = min(ante, player_chips[i])
@@ -386,7 +450,7 @@ func ante_phase():
 		player_panel[i].bet_label.text = "Ante: %d" % ante
 	pot_label.text = "Pot: %d" % pot
 	update_chip_labels()
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(1.8).timeout
 
 func build_deck():
 	deck = []
@@ -396,16 +460,16 @@ func build_deck():
 	deck.shuffle()
 
 func deal_phase():
-	message_label.text = "Dealing..."
+	_announce("Dealing...")
 	build_deck()
 	for i in range(NUM_PLAYERS):
 		player_hands[i] = []
 		for j in range(5):
 			player_hands[i].append(deck.pop_back())
 		update_hand_display(i)
-		await get_tree().create_timer(0.15).timeout
-	message_label.text = "Cards dealt!"
-	await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(0.25).timeout
+	_announce("Cards dealt!")
+	await get_tree().create_timer(0.9).timeout
 
 func update_hand_display(player_idx: int, face_up: bool = false):
 	var container = player_panel[player_idx].hand_container
@@ -435,12 +499,12 @@ func flop_phase(num_cards: int):
 		var card_pos = Vector2(738 + idx * 120, 322)
 		community_nodes[idx].position = card_pos
 		community_nodes[idx].visible = true
-	message_label.text = "Flop: %s" % Globals.card_name(community_cards[idx].suit, community_cards[idx].rank) if community_cards.size() > 0 else ""
+	_announce("Flop: %s" % Globals.card_name(community_cards[idx].suit, community_cards[idx].rank) if community_cards.size() > 0 else "")
 	update_all_displays()
 	await get_tree().create_timer(1).timeout
 
 func betting_round():
-	message_label.text = "Betting round..."
+	_announce("Betting round...")
 	current_bet = 0
 	call_amount = 0
 	last_raiser = -1
@@ -499,11 +563,11 @@ func betting_round():
 		idx = (idx + 1) % NUM_PLAYERS
 	
 	pot_label.text = "Pot: %d" % pot
-	message_label.text = "Betting round over"
-	await get_tree().create_timer(0.8).timeout
+	_announce("Betting round over")
+	await get_tree().create_timer(1.8).timeout
 
 func human_betting_turn(player_idx: int, turn_count: int):
-	message_label.text = "Your turn!"
+	_announce("Your turn!")
 	call_amount = current_bet - player_bets[player_idx]
 	if call_amount < 0:
 		call_amount = 0
@@ -546,14 +610,14 @@ func human_betting_turn(player_idx: int, turn_count: int):
 		"fold":
 			player_folded[player_idx] = true
 			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
-			message_label.text = "You folded"
+			_announce("You folded")
 		"call":
 			var amount = call_amount
 			player_chips[player_idx] -= amount
 			pot += amount
 			player_bets[player_idx] += amount
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-			message_label.text = "You called"
+			_announce("You called")
 		"raise":
 			var raise_amount = int(bet_slider.value)
 			var max_allowed = 100 - player_bets[player_idx]
@@ -564,7 +628,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			current_bet = player_bets[player_idx]
 			last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-			message_label.text = "You raised to %d" % total_bet
+			_announce("You raised to %d" % total_bet)
 		"allin":
 			var amount = min(player_chips[player_idx], 100 - player_bets[player_idx])
 			player_chips[player_idx] -= amount
@@ -574,11 +638,11 @@ func human_betting_turn(player_idx: int, turn_count: int):
 				current_bet = player_bets[player_idx]
 				last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "All In: %d" % player_bets[player_idx]
-			message_label.text = "You went All In!"
+			_announce("You went All In!")
 	
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
-	await get_tree().create_timer(0.4).timeout
+	await get_tree().create_timer(0.9).timeout
 
 func show_action_buttons(show: bool):
 	fold_button.visible = show
@@ -620,8 +684,8 @@ func _on_bet_slider_changed(value: float):
 	bet_value_label.text = str(int(value))
 
 func cpu_betting_turn(player_idx: int, turn_count: int):
-	message_label.text = "%s is thinking..." % player_names[player_idx]
-	await get_tree().create_timer(0.8).timeout
+	_announce("%s is thinking..." % player_names[player_idx])
+	await get_tree().create_timer(1.8).timeout
 	
 	var call_amt = current_bet - player_bets[player_idx]
 	if call_amt < 0:
@@ -644,18 +708,18 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 		current_bet = player_bets[player_idx]
 		last_raiser = player_idx
 		player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-		message_label.text = "%s raises to %d" % [player_names[player_idx], raise_amt]
+		_announce("%s raises to %d" % [player_names[player_idx], raise_amt])
 	elif hand_strength > 0.2 or randf() > 0.3:
 		var amount = min(call_amt, player_chips[player_idx])
 		player_chips[player_idx] -= amount
 		pot += amount
 		player_bets[player_idx] += amount
 		player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-		message_label.text = "%s calls" % player_names[player_idx]
+		_announce("%s calls" % player_names[player_idx])
 	else:
 		player_folded[player_idx] = true
 		player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
-		message_label.text = "%s folds" % player_names[player_idx]
+		_announce("%s folds" % player_names[player_idx])
 	
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
@@ -703,7 +767,7 @@ func evaluate_hand_strength(hand: Array, community: Array) -> float:
 	return strength
 
 func discard_phase():
-	message_label.text = "Discard phase - select cards to discard (0-5)"
+	_announce("Discard phase - select cards to discard (0-5)")
 	
 	var active_players = []
 	for i in range(NUM_PLAYERS):
@@ -716,11 +780,11 @@ func discard_phase():
 		else:
 			cpu_discard(i)
 	
-	message_label.text = "Draw phase"
-	await get_tree().create_timer(0.5).timeout
+	_announce("Draw phase")
+	await get_tree().create_timer(0.9).timeout
 
 func human_discard(player_idx: int):
-	message_label.text = "Click cards to discard, then press Discard & Draw"
+	_announce("Click cards to discard, then press Discard & Draw")
 	
 	var hand = player_hands[player_idx]
 	var container = player_panel[player_idx].hand_container
@@ -775,12 +839,12 @@ func human_discard(player_idx: int):
 			player_hands[player_idx].append(deck.pop_back())
 	
 	update_hand_display(player_idx)
-	message_label.text = "Drew %d new cards" % num_discard
-	await get_tree().create_timer(0.5).timeout
+	_announce("Drew %d new cards" % num_discard)
+	await get_tree().create_timer(1.9).timeout
 
 func cpu_discard(player_idx: int):
-	message_label.text = "%s is discarding..." % player_names[player_idx]
-	await get_tree().create_timer(0.4).timeout
+	_announce("%s is discarding..." % player_names[player_idx])
+	await get_tree().create_timer(0.8).timeout
 	
 	var hand = player_hands[player_idx]
 	var rank_counts = {}
@@ -811,21 +875,21 @@ func cpu_discard(player_idx: int):
 			if deck.size() > 0:
 				player_hands[player_idx].append(deck.pop_back())
 		
-		message_label.text = "%s drew %d cards" % [player_names[player_idx], actual_discard]
+		_announce("%s drew %d cards" % [player_names[player_idx], actual_discard])
 	else:
-		message_label.text = "%s kept all cards" % player_names[player_idx]
+		_announce("%s kept all cards" % player_names[player_idx])
 	
 	update_hand_display(player_idx)
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.9).timeout
 
 func steal_phase():
-	message_label.text = "STEAL PHASE!"
+	_announce("STEAL PHASE!")
 	stealtimer_label.visible = true
 	
 	for i in range(NUM_PLAYERS):
 		update_hand_display(i, true)
 	
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(1.8).timeout
 	
 	var steal_decisions = [-1, -1, -1, -1]
 	var human_target = 3
@@ -869,11 +933,11 @@ func steal_phase():
 	for info in steal_info:
 		if !player_is_human[info.stealer]:
 			var card_name = Globals.card_name(info.suit, info.rank)
-			message_label.text = "%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]]
+			_announce("%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]])
 			await get_tree().create_timer(3.0).timeout
 	
-	message_label.text = "Steals complete!"
-	await get_tree().create_timer(0.8).timeout
+	_announce("Steals complete!")
+	await get_tree().create_timer(1.8).timeout
 
 func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
 	var target_hand = player_hands[target_idx]
@@ -926,7 +990,7 @@ func show_steal_ui(target_idx: int):
 	while (steal_choice < 0) and elapsed < STEAL_TIMER:
 		var remaining = STEAL_TIMER - elapsed
 		overlay_timer.text = "Time: %d" % ceil(remaining)
-		await get_tree().create_timer(0.1).timeout
+		await get_tree().create_timer(0.2).timeout
 		elapsed += 0.1
 	
 	if steal_choice < 0:
@@ -937,8 +1001,8 @@ func show_steal_ui(target_idx: int):
 	overlay_container.visible = false
 
 func showdown_phase():
-	message_label.text = "Showdown!"
-	await get_tree().create_timer(0.8).timeout
+	_announce("Showdown!")
+	await get_tree().create_timer(1.8).timeout
 	
 	for i in range(NUM_PLAYERS):
 		if !player_folded[i]:
@@ -952,7 +1016,7 @@ func showdown_phase():
 	if active_players.size() == 1:
 		var winner = active_players[0]
 		player_chips[winner] += pot
-		message_label.text = "%s wins (everyone folded)!" % player_names[winner]
+		_announce("%s wins (everyone folded)!" % player_names[winner])
 		return
 	
 	var results = []
@@ -960,8 +1024,8 @@ func showdown_phase():
 		var all_cards = player_hands[i] + community_cards
 		var result = evaluate_best_hand(all_cards)
 		results.append({player = i, result = result})
-		message_label.text = "%s: %s" % [player_names[i], hand_result_name(result)]
-		await get_tree().create_timer(0.8).timeout
+		_announce("%s: %s" % [player_names[i], hand_result_name(result)])
+		await get_tree().create_timer(1.8).timeout
 	
 	results.sort_custom(func(a, b): return compare_hands(a.result, b.result) > 0)
 	
@@ -976,9 +1040,9 @@ func showdown_phase():
 		player_chips[t.player] += share
 	
 	if best.player == 0:
-		message_label.text = "%s win with %s!" % [player_names[best.player], hand_result_name(best.result)]
+		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)])
 	else:
-		message_label.text = "%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)]
+		_announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)])
 	update_chip_labels()
 
 func round_end():

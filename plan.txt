@@ -1,0 +1,17 @@
+Godot 4.6 Steal Poker 2d game
+
+players:
+4 ( 3 CPU players and 1 human)
+
+Use assets from the folder.
+
+rules:
+-cpu deals 5 cards to each player
+-5% ante
+-flop one card on the table
+-pot limit (10%) betting round
+-everyone select 0 to 5 cards to discard and re draw
+-pot limit (10%) betting round
+-everyone shows their hands and steal one card from the player to the left on countdown timer from 15 seconds
+-flop one card on the table
+-judge player hands according to poker rules

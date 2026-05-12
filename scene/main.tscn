@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bwpyfl2c6rvk4"]
+
+[ext_resource type="Script" uid="uid://de1s6dmylfst3" path="res://script/game_manager.gd" id="1_3mqyv"]
+
+[node name="Game" type="Control" unique_id=68148616]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1600.0
+offset_bottom = 800.0
+script = ExtResource("1_3mqyv")

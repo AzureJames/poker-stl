@@ -10,7 +10,7 @@ const CARD_H = 124
 const CARD_GAP = -45
 const PLAYER_POSITIONS = [
 	Vector2(900, 555),
-	Vector2(20, 280),
+	Vector2(30, 280),
 	Vector2(650, 40),
 	Vector2(1150, 280)
 ]

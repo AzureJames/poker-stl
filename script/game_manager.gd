@@ -150,7 +150,7 @@ func build_ui():
 	btn_x += 130
 
 	allin_button = make_button("All In", Vector2(btn_x, 0))
-	action_bar.add_child(allin_button)
+	#action_bar.add_child(allin_button)
 
 	bet_amt_label = Label.new()
 	bet_amt_label.text = "Bet Amt:"
@@ -164,8 +164,8 @@ func build_ui():
 	bet_slider.position = Vector2(110, 40)
 	bet_slider.size = Vector2(250, 40)
 	bet_slider.min_value = 1
-	bet_slider.max_value = 50
-	bet_slider.step = 1
+	bet_slider.max_value = 100
+	bet_slider.step = 5
 	bet_slider.value_changed.connect(_on_bet_slider_changed)
 	action_bar.add_child(bet_slider)
 
@@ -458,6 +458,7 @@ func betting_round():
 	
 	var idx = players_in_round[0]
 	var round_over = false
+	var turn_count = 0
 	
 	while !round_over:
 		if player_folded[idx]:
@@ -470,9 +471,11 @@ func betting_round():
 		var old_bet = current_bet
 		
 		if player_is_human[idx]:
-			await human_betting_turn(idx)
+			await human_betting_turn(idx, turn_count)
 		else:
-			await cpu_betting_turn(idx)
+			await cpu_betting_turn(idx, turn_count)
+		
+		turn_count += 1
 		
 		if player_folded[idx]:
 			players_in_round.erase(idx)
@@ -499,7 +502,7 @@ func betting_round():
 	message_label.text = "Betting round over"
 	await get_tree().create_timer(0.8).timeout
 
-func human_betting_turn(player_idx: int):
+func human_betting_turn(player_idx: int, turn_count: int):
 	message_label.text = "Your turn!"
 	call_amount = current_bet - player_bets[player_idx]
 	if call_amount < 0:
@@ -514,14 +517,26 @@ func human_betting_turn(player_idx: int):
 	else:
 		checkcall_button.text = "Call %d" % call_amount
 	
-	bet_slider.min_value = min_raise
-	bet_slider.max_value = max(1, max_raise)
-	bet_slider.value = min_raise
-	bet_slider.visible = true
-	bet_value_label.visible = true
-	bet_value_label.text = str(min_raise)
+	var can_raise = turn_count < 4
 	
-	show_action_buttons(true)
+	fold_button.visible = true
+	checkcall_button.visible = true
+	
+	var slider_min = 5
+	var slider_max = 100
+	var cannot_meet_call = call_amount > slider_max
+	
+	raise_button.visible = can_raise and !cannot_meet_call
+	allin_button.visible = can_raise and !cannot_meet_call
+	bet_amt_label.visible = can_raise
+	bet_slider.visible = can_raise and !cannot_meet_call
+	bet_value_label.visible = can_raise and !cannot_meet_call
+	
+	if can_raise:
+		bet_slider.min_value = slider_min
+		bet_slider.max_value = slider_max
+		bet_slider.value = slider_min
+		bet_value_label.text = str(slider_min)
 	
 	var action = await _wait_for_human_action()
 	
@@ -541,7 +556,8 @@ func human_betting_turn(player_idx: int):
 			message_label.text = "You called"
 		"raise":
 			var raise_amount = int(bet_slider.value)
-			var total_bet = raise_amount
+			var max_allowed = 100 - player_bets[player_idx]
+			var total_bet = mini(raise_amount, max_allowed)
 			player_chips[player_idx] -= total_bet
 			pot += total_bet
 			player_bets[player_idx] += total_bet
@@ -550,8 +566,8 @@ func human_betting_turn(player_idx: int):
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
 			message_label.text = "You raised to %d" % total_bet
 		"allin":
-			var amount = player_chips[player_idx]
-			player_chips[player_idx] = 0
+			var amount = min(player_chips[player_idx], 100 - player_bets[player_idx])
+			player_chips[player_idx] -= amount
 			pot += amount
 			player_bets[player_idx] += amount
 			if player_bets[player_idx] > current_bet:
@@ -603,7 +619,7 @@ func _wait_for_human_action() -> String:
 func _on_bet_slider_changed(value: float):
 	bet_value_label.text = str(int(value))
 
-func cpu_betting_turn(player_idx: int):
+func cpu_betting_turn(player_idx: int, turn_count: int):
 	message_label.text = "%s is thinking..." % player_names[player_idx]
 	await get_tree().create_timer(0.8).timeout
 	
@@ -615,10 +631,13 @@ func cpu_betting_turn(player_idx: int):
 	var pot_for_bet = pot + player_bets[player_idx]
 	var max_bet = min(int(pot_for_bet * MAX_BET_PERCENT), player_chips[player_idx])
 	
-	if hand_strength > 0.7 or (hand_strength > 0.4 and randf() > 0.5):
+	var can_raise = turn_count < 4
+	
+	if can_raise and (hand_strength > 0.7 or (hand_strength > 0.4 and randf() > 0.5)):
 		var raise_amt = min(max_bet, max(call_amt + int(max_bet * 0.5), int(max_bet * 0.3)))
 		raise_amt = max(1, int(raise_amt))
 		raise_amt = min(raise_amt, player_chips[player_idx])
+		raise_amt = min(raise_amt, 100 - player_bets[player_idx])
 		player_chips[player_idx] -= raise_amt
 		pot += raise_amt
 		player_bets[player_idx] += raise_amt
@@ -826,6 +845,13 @@ func steal_phase():
 		await show_steal_ui(human_target)
 		steal_decisions[0] = steal_choice
 	
+	var steal_info = []
+	for i in range(NUM_PLAYERS):
+		if steal_decisions[i] >= 0:
+			var left_idx = (i + 1) % NUM_PLAYERS
+			var card = player_hands[left_idx][steal_decisions[i]]
+			steal_info.append({stealer = i, suit = card.suit, rank = card.rank, target = left_idx})
+	
 	for i in range(NUM_PLAYERS):
 		if steal_decisions[i] >= 0:
 			var left_idx = (i + 1) % NUM_PLAYERS
@@ -839,6 +865,12 @@ func steal_phase():
 	
 	for i in range(NUM_PLAYERS):
 		update_hand_display(i, true)
+	
+	for info in steal_info:
+		if !player_is_human[info.stealer]:
+			var card_name = Globals.card_name(info.suit, info.rank)
+			message_label.text = "%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]]
+			await get_tree().create_timer(3.0).timeout
 	
 	message_label.text = "Steals complete!"
 	await get_tree().create_timer(0.8).timeout
@@ -943,7 +975,10 @@ func showdown_phase():
 	for t in tied:
 		player_chips[t.player] += share
 	
-	message_label.text = "%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)]
+	if best.player == 0:
+		message_label.text = "%s win with %s!" % [player_names[best.player], hand_result_name(best.result)]
+	else:
+		message_label.text = "%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)]
 	update_chip_labels()
 
 func round_end():

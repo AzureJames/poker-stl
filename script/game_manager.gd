@@ -7,9 +7,9 @@ const MAX_BET_PERCENT = 0.10
 const STEAL_TIMER = 15.0
 const CARD_W = 88
 const CARD_H = 124
-const CARD_GAP = -45
+const CARD_GAP = -30
 const PLAYER_POSITIONS = [
-	Vector2(900, 555),
+	Vector2(650, 555),
 	Vector2(30, 280),
 	Vector2(650, 40),
 	Vector2(1150, 280)
@@ -61,6 +61,7 @@ var raise_button: Button
 var allin_button: Button
 var discard_button: Button
 var steal_confirm_button: Button
+var bet_amt_label: Label
 var bet_slider: HSlider
 var bet_value_label: Label
 var info_label: Label
@@ -95,7 +96,7 @@ func build_ui():
 	pot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pot_label.add_theme_font_size_override("font_size", 24)
 	pot_label.add_theme_color_override("font_color", Color.WHITE)
-	pot_label.position = Vector2(540, 300)
+	pot_label.position = Vector2(560, 250)
 	pot_label.size = Vector2(200, 40)
 	add_child(pot_label)
 
@@ -103,7 +104,7 @@ func build_ui():
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.add_theme_font_size_override("font_size", 20)
 	message_label.add_theme_color_override("font_color", Color.WHITE)
-	message_label.position = Vector2(390, 370)
+	message_label.position = Vector2(390, 290)
 	message_label.size = Vector2(500, 40)
 	add_child(message_label)
 
@@ -151,17 +152,25 @@ func build_ui():
 	allin_button = make_button("All In", Vector2(btn_x, 0))
 	action_bar.add_child(allin_button)
 
+	bet_amt_label = Label.new()
+	bet_amt_label.text = "Bet Amt:"
+	bet_amt_label.position = Vector2(0, 40)
+	bet_amt_label.size = Vector2(100, 40)
+	bet_amt_label.add_theme_font_size_override("font_size", 18)
+	bet_amt_label.add_theme_color_override("font_color", Color.WHITE)
+	action_bar.add_child(bet_amt_label)
+
 	bet_slider = HSlider.new()
-	bet_slider.position = Vector2(btn_x + 150, 0)
-	bet_slider.size = Vector2(200, 40)
-	bet_slider.min_value = 0
-	bet_slider.max_value = 100
+	bet_slider.position = Vector2(110, 40)
+	bet_slider.size = Vector2(250, 40)
+	bet_slider.min_value = 1
+	bet_slider.max_value = 50
 	bet_slider.step = 1
 	bet_slider.value_changed.connect(_on_bet_slider_changed)
 	action_bar.add_child(bet_slider)
 
 	bet_value_label = Label.new()
-	bet_value_label.position = Vector2(btn_x + 360, 0)
+	bet_value_label.position = Vector2(370, 40)
 	bet_value_label.size = Vector2(80, 40)
 	bet_value_label.add_theme_font_size_override("font_size", 18)
 	bet_value_label.add_theme_color_override("font_color", Color.WHITE)
@@ -428,7 +437,7 @@ func flop_phase(num_cards: int):
 		community_nodes[idx].visible = true
 	message_label.text = "Flop: %s" % Globals.card_name(community_cards[idx].suit, community_cards[idx].rank) if community_cards.size() > 0 else ""
 	update_all_displays()
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(1).timeout
 
 func betting_round():
 	message_label.text = "Betting round..."
@@ -488,7 +497,7 @@ func betting_round():
 	
 	pot_label.text = "Pot: %d" % pot
 	message_label.text = "Betting round over"
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.8).timeout
 
 func human_betting_turn(player_idx: int):
 	message_label.text = "Your turn!"
@@ -553,13 +562,14 @@ func human_betting_turn(player_idx: int):
 	
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
-	await get_tree().create_timer(0.3).timeout
+	await get_tree().create_timer(0.4).timeout
 
 func show_action_buttons(show: bool):
 	fold_button.visible = show
 	checkcall_button.visible = show
 	raise_button.visible = show
 	allin_button.visible = show
+	bet_amt_label.visible = show
 	bet_slider.visible = show
 	bet_value_label.visible = show
 
@@ -595,7 +605,7 @@ func _on_bet_slider_changed(value: float):
 
 func cpu_betting_turn(player_idx: int):
 	message_label.text = "%s is thinking..." % player_names[player_idx]
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.8).timeout
 	
 	var call_amt = current_bet - player_bets[player_idx]
 	if call_amt < 0:
@@ -751,7 +761,7 @@ func human_discard(player_idx: int):
 
 func cpu_discard(player_idx: int):
 	message_label.text = "%s is discarding..." % player_names[player_idx]
-	await get_tree().create_timer(0.3).timeout
+	await get_tree().create_timer(0.4).timeout
 	
 	var hand = player_hands[player_idx]
 	var rank_counts = {}
@@ -796,23 +806,23 @@ func steal_phase():
 	for i in range(NUM_PLAYERS):
 		update_hand_display(i, true)
 	
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.8).timeout
 	
-	var steals = {}
 	var steal_decisions = [-1, -1, -1, -1]
-	var human_decision = -1
 	var human_target = 3
 	
 	for i in range(NUM_PLAYERS):
+		if player_folded[i]:
+			continue
 		var left_idx = (i + 1) % NUM_PLAYERS
+		if player_folded[left_idx]:
+			continue
 		if player_is_human[i]:
 			human_target = left_idx
 		else:
 			steal_decisions[i] = cpu_choose_steal(i, left_idx)
 	
-	if player_folded[human_target]:
-		steal_decisions[0] = -1
-	else:
+	if !player_folded[0] and !player_folded[human_target]:
 		await show_steal_ui(human_target)
 		steal_decisions[0] = steal_choice
 	
@@ -896,7 +906,7 @@ func show_steal_ui(target_idx: int):
 
 func showdown_phase():
 	message_label.text = "Showdown!"
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.8).timeout
 	
 	for i in range(NUM_PLAYERS):
 		if !player_folded[i]:

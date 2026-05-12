@@ -93,3 +93,11 @@ func make_card_back_texture() -> AtlasTexture:
 
 func card_name(suit: int, rank: int) -> String:
 	return "%s%s" % [RANK_NAME[rank], SUIT_SYMBOL[suit]]
+
+func make_deck() -> Array:
+	var deck = []
+	for suit in range(4):
+		for rank in range(2, 15):
+			deck.append({suit = suit, rank = rank})
+	deck.shuffle()
+	return deck

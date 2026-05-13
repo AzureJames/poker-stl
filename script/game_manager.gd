@@ -21,6 +21,7 @@ var player_hands: Array = []
 var player_folded: Array = []
 var player_bets: Array = []
 var player_is_human: Array = [true, false, false, false]
+var player_ai: Array = [null, null, null, null]
 var player_panel: Array = []
 var player_hand_nodes: Array = []
 
@@ -64,6 +65,8 @@ var steal_confirm_button: Button
 var bet_amt_label: Label
 var bet_slider: HSlider
 var bet_value_label: Label
+var difficulty_slider: HSlider
+var difficulty_label: Label
 var info_label: Label
 var end_label: Label
 var history_container: VBoxContainer
@@ -203,6 +206,35 @@ func build_ui():
 	bet_value_label.text = "0"
 	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_value_label)
+
+	var diff_label = Label.new()
+	diff_label.text = "CPU:"
+	diff_label.position = Vector2(20, 20)
+	diff_label.size = Vector2(40, 30)
+	diff_label.add_theme_font_size_override("font_size", 16)
+	diff_label.add_theme_color_override("font_color", Color.WHITE)
+	diff_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(diff_label)
+
+	difficulty_slider = HSlider.new()
+	difficulty_slider.position = Vector2(65, 20)
+	difficulty_slider.size = Vector2(130, 30)
+	difficulty_slider.min_value = 0
+	difficulty_slider.max_value = 2
+	difficulty_slider.step = 1
+	difficulty_slider.tick_count = 3
+	difficulty_slider.value = 0
+	difficulty_slider.value_changed.connect(_on_difficulty_changed)
+	add_child(difficulty_slider)
+
+	difficulty_label = Label.new()
+	difficulty_label.position = Vector2(200, 20)
+	difficulty_label.size = Vector2(60, 30)
+	difficulty_label.add_theme_font_size_override("font_size", 16)
+	difficulty_label.add_theme_color_override("font_color", Color.WHITE)
+	difficulty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(difficulty_label)
+	_on_difficulty_changed(0)
 
 	discard_button = make_button("Discard & Draw", Vector2(0, 40))
 	discard_button.visible = false
@@ -447,6 +479,9 @@ func start_game():
 	play_round()
 
 func play_round():
+	for i in range(NUM_PLAYERS):
+		if player_ai[i]:
+			player_ai[i].new_round()
 	await clear_hands()
 	await deal_phase()
 	ante_phase()
@@ -728,89 +763,62 @@ func _wait_for_human_action() -> String:
 func _on_bet_slider_changed(value: float):
 	bet_value_label.text = str(int(value))
 
+func _on_difficulty_changed(value: float):
+	var idx = int(value)
+	var scripts = [
+		preload("res://script/ai/ai_easy.gd"),
+		preload("res://script/ai/ai_medium.gd"),
+		preload("res://script/ai/ai_hard.gd")
+	]
+	for i in range(1, NUM_PLAYERS):
+		if player_ai[i]:
+			remove_child(player_ai[i])
+			player_ai[i].queue_free()
+		var ai = scripts[idx].new()
+		ai.name = "AICPU%d" % i
+		ai.randomize_personality()
+		add_child(ai)
+		player_ai[i] = ai
+	var labels = ["Easy", "Medium", "Hard"]
+	difficulty_label.text = labels[idx]
+
 func cpu_betting_turn(player_idx: int, turn_count: int):
 	_announce("%s is thinking..." % player_names[player_idx])
 	await get_tree().create_timer(1.8).timeout
-	
-	var call_amt = current_bet - player_bets[player_idx]
-	if call_amt < 0:
-		call_amt = 0
-	
-	var hand_strength = evaluate_hand_strength(player_hands[player_idx], community_cards)
-	var pot_for_bet = pot + player_bets[player_idx]
-	var max_bet = min(int(pot_for_bet * MAX_BET_PERCENT), player_chips[player_idx])
-	
-	var can_raise = turn_count < 4
-	
-	if can_raise and (hand_strength > 0.7 or (hand_strength > 0.4 and randf() > 0.5)):
-		var raise_amt = min(max_bet, max(call_amt + int(max_bet * 0.5), int(max_bet * 0.3)))
-		raise_amt = max(1, int(raise_amt))
-		raise_amt = min(raise_amt, player_chips[player_idx])
-		raise_amt = min(raise_amt, 100 - player_bets[player_idx])
-		player_chips[player_idx] -= raise_amt
-		pot += raise_amt
-		player_bets[player_idx] += raise_amt
-		current_bet = player_bets[player_idx]
-		last_raiser = player_idx
-		player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-		_announce("%s raises to %d" % [player_names[player_idx], raise_amt])
-	elif hand_strength > 0.2 or randf() > 0.3:
-		var amount = min(call_amt, player_chips[player_idx])
-		player_chips[player_idx] -= amount
-		pot += amount
-		player_bets[player_idx] += amount
-		player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-		_announce("%s calls" % player_names[player_idx])
-	else:
-		player_folded[player_idx] = true
-		player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
-		_announce("%s folds" % player_names[player_idx])
-	
+
+	player_ai[player_idx].set_current_player(player_idx)
+	var decision = player_ai[player_idx].get_betting_action(
+		player_hands[player_idx], community_cards, pot,
+		player_bets[player_idx], current_bet, player_chips[player_idx],
+		turn_count, MAX_BET_PERCENT
+	)
+
+	match decision.action:
+		"raise":
+			var raise_amt = clampi(decision.amount, 1, 100 - player_bets[player_idx])
+			raise_amt = mini(raise_amt, player_chips[player_idx])
+			player_chips[player_idx] -= raise_amt
+			pot += raise_amt
+			player_bets[player_idx] += raise_amt
+			current_bet = player_bets[player_idx]
+			last_raiser = player_idx
+			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+			_announce("%s raises to %d" % [player_names[player_idx], raise_amt])
+		"call":
+			var amount = mini(decision.amount, player_chips[player_idx])
+			player_chips[player_idx] -= amount
+			pot += amount
+			player_bets[player_idx] += amount
+			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+			_announce("%s calls" % player_names[player_idx])
+		"fold":
+			player_folded[player_idx] = true
+			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+			_announce("%s folds" % player_names[player_idx])
+
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
 	await get_tree().create_timer(0.6).timeout
-
-func evaluate_hand_strength(hand: Array, community: Array) -> float:
-	var all_cards = hand + community
-	if all_cards.size() < 5:
-		return 0.3
-	
-	var suits = {}
-	var ranks = []
-	for c in all_cards:
-		suits[c.suit] = suits.get(c.suit, 0) + 1
-		ranks.append(c.rank)
-	
-	ranks.sort()
-	ranks.reverse()
-	
-	var has_flush = false
-	for s in suits.values():
-		if s >= 5:
-			has_flush = true
-			break
-	
-	var rank_counts = {}
-	for r in ranks:
-		rank_counts[r] = rank_counts.get(r, 0) + 1
-	
-	var pairs = 0
-	var trips = 0
-	var quads = 0
-	for c in rank_counts.values():
-		if c == 4: quads += 1
-		elif c == 3: trips += 1
-		elif c == 2: pairs += 1
-	
-	var strength = 0.1
-	if quads > 0: strength = 0.95
-	elif trips > 0 and pairs > 0: strength = 0.9
-	elif has_flush: strength = 0.85
-	elif trips > 0: strength = 0.7
-	elif pairs >= 2: strength = 0.5
-	elif pairs == 1: strength = 0.3
-	
-	return strength
 
 func discard_phase():
 	_announce("Click on any cards you want to replace")
@@ -891,22 +899,10 @@ func human_discard(player_idx: int):
 func cpu_discard(player_idx: int):
 	_announce("%s is discarding..." % player_names[player_idx])
 	await get_tree().create_timer(0.8).timeout
-	
-	var hand = player_hands[player_idx]
-	var rank_counts = {}
-	for c in hand:
-		rank_counts[c.rank] = rank_counts.get(c.rank, 0) + 1
-	
-	var to_discard = []
-	for i in range(hand.size()):
-		var c = hand[i]
-		if rank_counts[c.rank] == 1 and c.rank < 11:
-			to_discard.append(i)
-	
-	if to_discard.is_empty() and hand.size() > 0:
-		to_discard = [hand.size() - 1]
-	
-	var num_discard = mini(to_discard.size(), hand.size())
+
+	var to_discard = player_ai[player_idx].get_discard_indices(player_hands[player_idx])
+
+	var num_discard = mini(to_discard.size(), player_hands[player_idx].size())
 	if num_discard > 0:
 		to_discard.sort()
 		to_discard.reverse()
@@ -916,15 +912,15 @@ func cpu_discard(player_idx: int):
 			if idx < player_hands[player_idx].size():
 				player_hands[player_idx].remove_at(idx)
 				actual_discard += 1
-		
+
 		for _i in range(actual_discard):
 			if deck.size() > 0:
 				player_hands[player_idx].append(deck.pop_back())
-		
+
 		_announce("%s drew %d cards" % [player_names[player_idx], actual_discard])
 	else:
 		_announce("%s kept all cards" % player_names[player_idx])
-	
+
 	update_hand_display(player_idx)
 	await get_tree().create_timer(0.9).timeout
 
@@ -986,16 +982,7 @@ func steal_phase():
 	await get_tree().create_timer(1.8).timeout
 
 func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
-	var target_hand = player_hands[target_idx]
-	if target_hand.is_empty():
-		return -1
-	var best_idx = 0
-	var best_rank = 0
-	for i in range(target_hand.size()):
-		if target_hand[i].rank > best_rank:
-			best_rank = target_hand[i].rank
-			best_idx = i
-	return best_idx
+	return player_ai[player_idx].get_steal_choice(player_hands[player_idx], player_hands[target_idx])
 
 func show_steal_ui(target_idx: int):
 	steal_overlay.visible = true

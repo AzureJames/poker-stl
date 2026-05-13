@@ -58,6 +58,10 @@ const SHEET_COLS = 5
 
 var suit_atlases: Dictionary = {}
 var card_back: Texture2D
+var grey_bevel_normal: Texture2D
+var grey_bevel_hover: Texture2D
+var grey_bevel_pressed: Texture2D
+var ui_font: FontFile
 
 func _ready():
 	load_textures()
@@ -67,6 +71,10 @@ func load_textures():
 		var path = "res://asset/Cards/%s - Top Down 88x124.png" % SUIT_NAME[s]
 		suit_atlases[s] = load(path)
 	card_back = load("res://asset/Cards/Back - Top Down 88x124.png")
+	grey_bevel_normal = load("res://asset/grey_bevel_normal.png")
+	grey_bevel_hover = load("res://asset/grey_bevel_hover.png")
+	grey_bevel_pressed = load("res://asset/grey_bevel_pressed.png")
+	ui_font = load("res://asset/fonts/VT323-Regular.ttf")
 
 func rank_to_sheet_idx(rank: int) -> int:
 	if rank == 14:

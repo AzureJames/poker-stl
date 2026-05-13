@@ -66,7 +66,6 @@ var bet_slider: HSlider
 var bet_value_label: Label
 var info_label: Label
 var end_label: Label
-var history_panel: Panel
 var history_container: VBoxContainer
 
 func _ready():
@@ -81,17 +80,25 @@ func _on_new_round_pressed():
 	new_round_button.visible = false
 
 func build_ui():
+	var theme = Theme.new()
+	theme.default_font = Globals.ui_font
+	self.theme = theme
+
 	var bg = ColorRect.new()
 	bg.color = Color("1a5c1a")
 	bg.size = get_viewport_rect().size
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	var table = ColorRect.new()
-	table.color = Color("2d8c2d")
-	table.size = Vector2(1000, 500)
-	table.position = Vector2(140, 110)
+	var viewport = get_viewport_rect().size
+	var table = TextureRect.new()
+	table.texture = load("res://asset/felt_green.jpg")
+	table.stretch_mode = TextureRect.STRETCH_TILE
+	table.size = Vector2(3500,1000)
+	table.position = Vector2(200,100)
+	table.scale = Vector2(.33,.33)
 	table.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	table.modulate = Color(0.65, 1.0, 0.65)
 	add_child(table)
 
 	pot_label = Label.new()
@@ -138,6 +145,16 @@ func build_ui():
 
 	community_cards = []
 
+	var ab_bg = NinePatchRect.new()
+	ab_bg.texture = Globals.grey_bevel_normal
+	ab_bg.patch_margin_left = 4
+	ab_bg.patch_margin_top = 4
+	ab_bg.patch_margin_right = 4
+	ab_bg.patch_margin_bottom = 4
+	ab_bg.position = Vector2(50, 630)
+	ab_bg.size = Vector2(410, 100)
+	add_child(ab_bg)
+
 	action_bar = Control.new()
 	action_bar.position = Vector2(60, 640)
 	action_bar.size = Vector2(860, 80)
@@ -165,7 +182,7 @@ func build_ui():
 	bet_amt_label.position = Vector2(0, 40)
 	bet_amt_label.size = Vector2(100, 40)
 	bet_amt_label.add_theme_font_size_override("font_size", 18)
-	bet_amt_label.add_theme_color_override("font_color", Color.WHITE)
+	bet_amt_label.add_theme_color_override("font_color", Color.BLACK)
 	bet_amt_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_amt_label)
 
@@ -182,7 +199,7 @@ func build_ui():
 	bet_value_label.position = Vector2(370, 40)
 	bet_value_label.size = Vector2(80, 40)
 	bet_value_label.add_theme_font_size_override("font_size", 18)
-	bet_value_label.add_theme_color_override("font_color", Color.WHITE)
+	bet_value_label.add_theme_color_override("font_color", Color.BLACK)
 	bet_value_label.text = "0"
 	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_value_label)
@@ -200,7 +217,7 @@ func build_ui():
 
 		var name_label = Label.new()
 		name_label.text = player_names[i]
-		name_label.add_theme_font_size_override("font_size", 16)
+		name_label.add_theme_font_size_override("font_size", 18)
 		name_label.add_theme_color_override("font_color", Color.WHITE)
 		if i != 0:
 			name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -209,7 +226,7 @@ func build_ui():
 
 		var chip_label = Label.new()
 		chip_label.text = "Chips: %d" % STARTING_CHIPS
-		chip_label.add_theme_font_size_override("font_size", 13)
+		chip_label.add_theme_font_size_override("font_size", 18)
 		chip_label.add_theme_color_override("font_color", Color.YELLOW)
 		if i != 0:
 			chip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -223,7 +240,7 @@ func build_ui():
 
 		var bet_label = Label.new()
 		bet_label.text = ""
-		bet_label.add_theme_font_size_override("font_size", 12)
+		bet_label.add_theme_font_size_override("font_size", 18)
 		bet_label.add_theme_color_override("font_color", Color.WHITE)
 		if i != 0:
 			bet_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -241,7 +258,7 @@ func build_ui():
 
 	info_label = Label.new()
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info_label.add_theme_font_size_override("font_size", 16)
+	info_label.add_theme_font_size_override("font_size", 18)
 	info_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
 	info_label.position = Vector2(200, 470)
 	info_label.size = Vector2(880, 80)
@@ -313,37 +330,30 @@ func build_ui():
 
 	stealtimer_label = Label.new()
 	stealtimer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stealtimer_label.add_theme_font_size_override("font_size", 16)
+	stealtimer_label.add_theme_font_size_override("font_size", 18)
 	stealtimer_label.add_theme_color_override("font_color", Color.ORANGE)
 	stealtimer_label.position = Vector2(540, 340)
 	stealtimer_label.size = Vector2(200, 30)
 	stealtimer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(stealtimer_label)
 
-	history_panel = Panel.new()
-	history_panel.position = Vector2(1220, 550)
-	history_panel.size = Vector2(360, 250)
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0, 0.15, 0, 0.7)
-	style.border_color = Color("2d8c2d")
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_right = 4
-	style.corner_radius_bottom_left = 4
-	history_panel.add_theme_stylebox_override("panel", style)
-	history_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(history_panel)
+	var history_bg = NinePatchRect.new()
+	history_bg.texture = Globals.grey_bevel_normal
+	history_bg.patch_margin_left = 4
+	history_bg.patch_margin_top = 4
+	history_bg.patch_margin_right = 4
+	history_bg.patch_margin_bottom = 4
+	history_bg.position = Vector2(1220, 550)
+	history_bg.size = Vector2(360, 250)
+	history_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(history_bg)
 
 	history_container = VBoxContainer.new()
-	history_container.position = Vector2(6, 6)
-	history_container.size = Vector2(348, 198)
+	history_container.position = Vector2(1226, 556)
+	history_container.size = Vector2(348, 238)
 	history_container.add_theme_constant_override("separation", 2)
 	history_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	history_panel.add_child(history_container)
+	add_child(history_container)
 
 	move_child(action_bar, get_child_count() - 1)
 
@@ -355,22 +365,54 @@ func _announce(msg: String):
 func _add_to_history(msg: String):
 	var entry = Label.new()
 	entry.text = msg
-	entry.add_theme_font_size_override("font_size", 12)
-	entry.add_theme_color_override("font_color", Color.WHITE)
+	entry.add_theme_font_size_override("font_size", 18)
+	entry.add_theme_color_override("font_color", Color(0.5, 1, 0.5))
 	entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	history_container.add_child(entry)
 	history_container.move_child(entry, 0)
-	if history_container.get_child_count() > 8:
+	if history_container.get_child_count() > 11:
 		history_container.get_child(history_container.get_child_count() - 1).queue_free()
+	for i in range(1, history_container.get_child_count()):
+		history_container.get_child(i).add_theme_color_override("font_color", Color.BLACK)
 
 func make_button(text: String, pos: Vector2) -> Button:
 	var btn = Button.new()
 	btn.text = text
 	btn.position = pos
 	btn.size = Vector2(110, 40)
-	btn.add_theme_font_size_override("font_size", 16)
+
+	var normal_sb = StyleBoxTexture.new()
+	normal_sb.texture = Globals.grey_bevel_normal
+	normal_sb.texture_margin_left = 4
+	normal_sb.texture_margin_top = 4
+	normal_sb.texture_margin_right = 4
+	normal_sb.texture_margin_bottom = 4
+
+	var hover_sb = StyleBoxTexture.new()
+	hover_sb.texture = Globals.grey_bevel_hover
+	hover_sb.texture_margin_left = 4
+	hover_sb.texture_margin_top = 4
+	hover_sb.texture_margin_right = 4
+	hover_sb.texture_margin_bottom = 4
+
+	var pressed_sb = StyleBoxTexture.new()
+	pressed_sb.texture = Globals.grey_bevel_pressed
+	pressed_sb.texture_margin_left = 4
+	pressed_sb.texture_margin_top = 4
+	pressed_sb.texture_margin_right = 4
+	pressed_sb.texture_margin_bottom = 4
+
+	btn.add_theme_stylebox_override("normal", normal_sb)
+	btn.add_theme_stylebox_override("hover", hover_sb)
+	btn.add_theme_stylebox_override("pressed", pressed_sb)
+	btn.add_theme_stylebox_override("disabled", normal_sb)
+
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_color_override("font_color", Color.BLACK)
+	btn.add_theme_color_override("font_disabled_color", Color("808080"))
+
 	return btn
 
 func make_card_sprite() -> TextureRect:
@@ -408,6 +450,7 @@ func play_round():
 	await clear_hands()
 	await deal_phase()
 	ante_phase()
+	await betting_round()
 	await flop_phase(1)
 	await betting_round()
 	await discard_phase()
@@ -443,8 +486,7 @@ func clear_hand_display(player_idx: int):
 func ante_phase():
 	_announce("Ante phase...")
 	for i in range(NUM_PLAYERS):
-		var ante = max(1, int(player_chips[i] * ANTE_PERCENT))
-		ante = min(ante, player_chips[i])
+		var ante = min(20, player_chips[i])
 		player_chips[i] -= ante
 		pot += ante
 		player_panel[i].bet_label.text = "Ante: %d" % ante
@@ -496,12 +538,12 @@ func flop_phase(num_cards: int):
 	var idx = community_cards.size() - 1
 	if idx >= 0 and idx < community_nodes.size():
 		set_card_sprite(community_nodes[idx], community_cards[idx].suit, community_cards[idx].rank)
-		var card_pos = Vector2(738 + idx * 120, 322)
+		var card_pos = Vector2(758 + idx * 120, 332)
 		community_nodes[idx].position = card_pos
 		community_nodes[idx].visible = true
 	_announce("Flop: %s" % Globals.card_name(community_cards[idx].suit, community_cards[idx].rank) if community_cards.size() > 0 else "")
 	update_all_displays()
-	await get_tree().create_timer(1).timeout
+	await get_tree().create_timer(2.1).timeout
 
 func betting_round():
 	_announce("Betting round...")
@@ -617,7 +659,10 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			pot += amount
 			player_bets[player_idx] += amount
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-			_announce("You called")
+			if call_amount == 0:
+				_announce("You checked")
+			else:
+				_announce("You called")
 		"raise":
 			var raise_amount = int(bet_slider.value)
 			var max_allowed = 100 - player_bets[player_idx]
@@ -723,6 +768,7 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 	
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
+	await get_tree().create_timer(0.6).timeout
 
 func evaluate_hand_strength(hand: Array, community: Array) -> float:
 	var all_cards = hand + community
@@ -767,7 +813,7 @@ func evaluate_hand_strength(hand: Array, community: Array) -> float:
 	return strength
 
 func discard_phase():
-	_announce("Discard phase - select cards to discard (0-5)")
+	_announce("Click on any cards you want to replace")
 	
 	var active_players = []
 	for i in range(NUM_PLAYERS):
@@ -1133,7 +1179,10 @@ func evaluate_5(cards: Array) -> Dictionary:
 	
 	var is_straight = false
 	var straight_high = 0
-	var unique_ranks = ranks.duplicate()
+	var unique_ranks = []
+	for r in ranks:
+		if not unique_ranks.has(r):
+			unique_ranks.append(r)
 	unique_ranks.sort()
 	
 	if unique_ranks.size() >= 5:

@@ -1034,7 +1034,7 @@ func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
 func show_steal_ui(target_idx: int):
 	steal_overlay.visible = true
 	overlay_container.visible = true
-	steal_choice = 1
+	steal_choice = -1
 	
 	left_player_label.text = "Steal a card from %s!" % player_names[target_idx]
 	
@@ -1066,15 +1066,22 @@ func show_steal_ui(target_idx: int):
 	
 	steal_confirm_button.visible = false
 	
+	stealtimer_label.text = "Time: %d" % STEAL_TIMER
+	overlay_timer.text = "Time: %d" % STEAL_TIMER
+	
 	var elapsed = 0.0
-	while (steal_choice < 0) and elapsed < STEAL_TIMER:
+	while steal_choice < 0 and elapsed < STEAL_TIMER:
 		var remaining = STEAL_TIMER - elapsed
+		stealtimer_label.text = "Time: %d" % ceil(remaining)
 		overlay_timer.text = "Time: %d" % ceil(remaining)
 		await get_tree().create_timer(0.1).timeout
 		elapsed += 0.1
 	
 	if steal_choice < 0:
-		steal_choice = randi() % hand.size()
+		steal_choice = 0
+		_announce("Time's up! You steal %s's first card." % player_names[target_idx])
+	else:
+		await steal_confirm_button.pressed
 	
 	steal_confirm_button.visible = false
 	steal_overlay.visible = false

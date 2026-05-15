@@ -962,6 +962,13 @@ func cpu_discard(player_idx: int):
 	update_hand_display(player_idx)
 	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 
+func _find_steal_target(player_idx: int) -> int:
+	for offset in range(1, NUM_PLAYERS):
+		var left = (player_idx + offset) % NUM_PLAYERS
+		if not player_folded[left]:
+			return left
+	return -1
+
 func steal_phase():
 	message_label.text = "STEAL PHASE!"
 	stealtimer_label.visible = true
@@ -972,14 +979,16 @@ func steal_phase():
 	await get_tree().create_timer(0.8).timeout
 	
 	var steal_decisions = [-1, -1, -1, -1]
+	var steal_targets = [-1, -1, -1, -1]
 	var human_target = 3
 	
 	for i in range(NUM_PLAYERS):
 		if player_folded[i]:
 			continue
-		var left_idx = (i + 1) % NUM_PLAYERS
-		if player_folded[left_idx]:
+		var left_idx = _find_steal_target(i)
+		if left_idx < 0:
 			continue
+		steal_targets[i] = left_idx
 		if player_is_human[i]:
 			human_target = left_idx
 		else:
@@ -992,15 +1001,15 @@ func steal_phase():
 	var steal_info = []
 	for i in range(NUM_PLAYERS):
 		if steal_decisions[i] >= 0:
-			var left_idx = (i + 1) % NUM_PLAYERS
-			var card = player_hands[left_idx][steal_decisions[i]]
-			steal_info.append({stealer = i, suit = card.suit, rank = card.rank, target = left_idx})
+			var target = steal_targets[i]
+			var card = player_hands[target][steal_decisions[i]]
+			steal_info.append({stealer = i, suit = card.suit, rank = card.rank, target = target})
 	
 	for i in range(NUM_PLAYERS):
 		if steal_decisions[i] >= 0:
-			var left_idx = (i + 1) % NUM_PLAYERS
-			var card = player_hands[left_idx][steal_decisions[i]]
-			player_hands[left_idx].remove_at(steal_decisions[i])
+			var target = steal_targets[i]
+			var card = player_hands[target][steal_decisions[i]]
+			player_hands[target].remove_at(steal_decisions[i])
 			player_hands[i].append(card)
 	
 	stealtimer_label.visible = false
@@ -1011,12 +1020,12 @@ func steal_phase():
 		update_hand_display(i, true)
 	
 	for info in steal_info:
+		var card_name = Globals.card_name(info.suit, info.rank)
+		_announce("%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]])
 		if !player_is_human[info.stealer]:
-			var card_name = Globals.card_name(info.suit, info.rank)
-			message_label.text = "%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]]
 			await get_tree().create_timer(3.0).timeout
 	
-	message_label.text = "Steals complete!"
+	_announce("Steals complete!")
 	await get_tree().create_timer(0.8).timeout
 
 func cpu_choose_steal(player_idx: int, target_idx: int) -> int:

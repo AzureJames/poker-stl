@@ -8,12 +8,12 @@ func randomize_personality():
 
 func get_betting_action(hand: Array, community: Array, pot: int,
 	player_bet: int, current_bet: int, player_chips: int,
-	turn_count: int, max_bet_percent: float) -> Dictionary:
+	turn_count: int, max_bets: int) -> Dictionary:
 
 	var call_amt = max(0, current_bet - player_bet)
 	var strength = _eval_strength(hand, community)
 	var pot_for_bet = pot + player_bet
-	var max_bet = min(int(pot_for_bet * max_bet_percent), player_chips)
+	var max_bet =  min(max_bets, player_chips)
 	var can_raise = turn_count < 4
 
 	var raise_thresh = 0.7 - aggro * 0.3

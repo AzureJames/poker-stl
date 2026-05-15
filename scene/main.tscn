@@ -1,7 +1,15 @@
 [gd_scene format=3 uid="uid://bwpyfl2c6rvk4"]
 
 [ext_resource type="Script" uid="uid://de1s6dmylfst3" path="res://script/game_manager.gd" id="1_3mqyv"]
-[ext_resource type="Script" uid="uid://dm3wdr8tic5oa" path="res://script/ai_manager.gd" id="2_v0l8b"]
+[ext_resource type="FontFile" uid="uid://y7wadv3p321g" path="res://asset/fonts/VT323-Regular.ttf" id="3_brvut"]
+[ext_resource type="Texture2D" uid="uid://pw01ihcm8aot" path="res://asset/grey_bevel_normal.png" id="4_0ha60"]
+[ext_resource type="Script" uid="uid://c6e28watsammr" path="res://scene/startmenu_box_container.gd" id="4_4j5ol"]
+[ext_resource type="Script" uid="uid://bpeul321albt" path="res://script/sound_manager.gd" id="5_qx8fy"]
+[ext_resource type="Script" uid="uid://joc4crsppm7s" path="res://script/chip_manager.gd" id="6_4j5ol"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_p1hux"]
 
 [node name="Game" type="Control" unique_id=68148616]
 layout_mode = 3
@@ -10,5 +18,80 @@ offset_right = 1600.0
 offset_bottom = 800.0
 script = ExtResource("1_3mqyv")
 
-[node name="AImanager" type="Node" parent="." unique_id=1838504757]
-script = ExtResource("2_v0l8b")
+[node name="StartMenu" type="CanvasLayer" parent="." unique_id=927480533]
+layer = 2
+
+[node name="ColorRect" type="ColorRect" parent="StartMenu" unique_id=13299685]
+z_index = -2
+offset_left = -109.0
+offset_top = -51.0
+offset_right = 1817.0
+offset_bottom = 939.0
+color = Color(0.53258264, 0.732209, 0.26911634, 1)
+
+[node name="RichTextLabel" type="RichTextLabel" parent="StartMenu/ColorRect" unique_id=1980501796]
+layout_mode = 0
+offset_left = 720.0
+offset_top = 219.0
+offset_right = 1150.0
+offset_bottom = 383.0
+theme_override_fonts/normal_font = ExtResource("3_brvut")
+theme_override_font_sizes/normal_font_size = 55
+text = "Steal Poker 2000"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="StartMenu/ColorRect" unique_id=187230359]
+layout_mode = 0
+offset_left = 783.0
+offset_top = 432.0
+offset_right = 1009.0
+offset_bottom = 472.0
+theme_override_constants/separation = 20
+script = ExtResource("4_4j5ol")
+
+[node name="Button" type="Button" parent="StartMenu/ColorRect/HBoxContainer" unique_id=1138009797]
+z_index = 1
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_brvut")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxEmpty_4j5ol")
+text = "  Play  "
+
+[node name="NinePatchRect" type="NinePatchRect" parent="StartMenu/ColorRect/HBoxContainer/Button" unique_id=1567754641]
+z_index = -1
+layout_mode = 0
+offset_right = 103.0
+offset_bottom = 43.0
+texture = ExtResource("4_0ha60")
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
+[node name="Button3" type="Button" parent="StartMenu/ColorRect/HBoxContainer" unique_id=1152526340]
+z_index = 1
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_brvut")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxEmpty_p1hux")
+text = "  Quit  "
+
+[node name="NinePatchRect" type="NinePatchRect" parent="StartMenu/ColorRect/HBoxContainer/Button3" unique_id=1374375432]
+z_index = -1
+layout_mode = 0
+offset_right = 103.0
+offset_bottom = 43.0
+texture = ExtResource("4_0ha60")
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
+[node name="SoundManager" type="Node" parent="." unique_id=1441812669]
+script = ExtResource("5_qx8fy")
+
+[node name="ChipManager" type="Node" parent="." unique_id=1134768523]
+script = ExtResource("6_4j5ol")
+
+[connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_pressed"]

@@ -10,7 +10,7 @@ func randomize_personality():
 
 func get_betting_action(hand: Array, community: Array, pot: int,
 	player_bet: int, current_bet: int, player_chips: int,
-	turn_count: int, max_bet_percent: float) -> Dictionary:
+	turn_count: int, max_bet: int) -> Dictionary:
 	return {"action": "call", "amount": 0}
 
 func get_discard_indices(hand: Array) -> Array[int]:

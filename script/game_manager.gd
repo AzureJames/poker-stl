@@ -3,10 +3,11 @@ extends Control
 const NUM_PLAYERS = 4
 const STARTING_CHIPS = 1000
 const ANTE_PERCENT = 0.05
-const MAX_BET_PERCENT = 0.10
+const MAX_BET = 50
 const STEAL_TIMER = 15.0
 const CARD_W = 88
 const CARD_H = 124
+const RELEASE_MODE := true
 const CARD_GAP = -30
 const PLAYER_POSITIONS = [
 	Vector2(650, 555),
@@ -74,7 +75,6 @@ var history_container: VBoxContainer
 func _ready():
 	randomize()
 	build_ui()
-	start_game()
 
 func _on_discard_pressed():
 	discard_button.visible = false
@@ -116,7 +116,7 @@ func build_ui():
 
 	message_label = Label.new()
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	message_label.add_theme_font_size_override("font_size", 20)
+	message_label.add_theme_font_size_override("font_size", 21)
 	message_label.add_theme_color_override("font_color", Color.WHITE)
 	message_label.position = Vector2(390, 290)
 	message_label.size = Vector2(500, 40)
@@ -184,7 +184,7 @@ func build_ui():
 	bet_amt_label.text = "Bet Amt:"
 	bet_amt_label.position = Vector2(0, 40)
 	bet_amt_label.size = Vector2(100, 40)
-	bet_amt_label.add_theme_font_size_override("font_size", 18)
+	bet_amt_label.add_theme_font_size_override("font_size", 20)
 	bet_amt_label.add_theme_color_override("font_color", Color.BLACK)
 	bet_amt_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_amt_label)
@@ -192,16 +192,17 @@ func build_ui():
 	bet_slider = HSlider.new()
 	bet_slider.position = Vector2(110, 40)
 	bet_slider.size = Vector2(250, 40)
-	bet_slider.min_value = 1
-	bet_slider.max_value = 100
+	bet_slider.min_value = 5
+	bet_slider.max_value = 50
 	bet_slider.step = 5
+	bet_slider.value = 5
 	bet_slider.value_changed.connect(_on_bet_slider_changed)
 	action_bar.add_child(bet_slider)
 
 	bet_value_label = Label.new()
 	bet_value_label.position = Vector2(370, 40)
 	bet_value_label.size = Vector2(80, 40)
-	bet_value_label.add_theme_font_size_override("font_size", 18)
+	bet_value_label.add_theme_font_size_override("font_size", 20)
 	bet_value_label.add_theme_color_override("font_color", Color.BLACK)
 	bet_value_label.text = "0"
 	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -211,7 +212,7 @@ func build_ui():
 	diff_label.text = "CPU:"
 	diff_label.position = Vector2(20, 20)
 	diff_label.size = Vector2(40, 30)
-	diff_label.add_theme_font_size_override("font_size", 16)
+	diff_label.add_theme_font_size_override("font_size", 18)
 	diff_label.add_theme_color_override("font_color", Color.WHITE)
 	diff_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(diff_label)
@@ -230,7 +231,7 @@ func build_ui():
 	difficulty_label = Label.new()
 	difficulty_label.position = Vector2(200, 20)
 	difficulty_label.size = Vector2(60, 30)
-	difficulty_label.add_theme_font_size_override("font_size", 16)
+	difficulty_label.add_theme_font_size_override("font_size", 18)
 	difficulty_label.add_theme_color_override("font_color", Color.WHITE)
 	difficulty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(difficulty_label)
@@ -249,7 +250,7 @@ func build_ui():
 
 		var name_label = Label.new()
 		name_label.text = player_names[i]
-		name_label.add_theme_font_size_override("font_size", 18)
+		name_label.add_theme_font_size_override("font_size", 20)
 		name_label.add_theme_color_override("font_color", Color.WHITE)
 		if i != 0:
 			name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -258,7 +259,7 @@ func build_ui():
 
 		var chip_label = Label.new()
 		chip_label.text = "Chips: %d" % STARTING_CHIPS
-		chip_label.add_theme_font_size_override("font_size", 18)
+		chip_label.add_theme_font_size_override("font_size", 20)
 		chip_label.add_theme_color_override("font_color", Color.YELLOW)
 		if i != 0:
 			chip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -272,7 +273,7 @@ func build_ui():
 
 		var bet_label = Label.new()
 		bet_label.text = ""
-		bet_label.add_theme_font_size_override("font_size", 18)
+		bet_label.add_theme_font_size_override("font_size", 20)
 		bet_label.add_theme_color_override("font_color", Color.WHITE)
 		if i != 0:
 			bet_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -290,7 +291,7 @@ func build_ui():
 
 	info_label = Label.new()
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info_label.add_theme_font_size_override("font_size", 18)
+	info_label.add_theme_font_size_override("font_size", 20)
 	info_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
 	info_label.position = Vector2(200, 470)
 	info_label.size = Vector2(880, 80)
@@ -315,19 +316,24 @@ func build_ui():
 	deal_button.visible = false
 	action_bar.add_child(deal_button)
 
+	var steal_layer = CanvasLayer.new()
+	steal_layer.layer = 1
+	steal_layer.name = "StealLayer"
+	add_child(steal_layer)
+
 	steal_overlay = ColorRect.new()
-	steal_overlay.color = Color(0, 0, 0, 0.7)
+	steal_overlay.color = Color(0.0, 0.0, 0.0, 0.5)
 	steal_overlay.size = get_viewport_rect().size
 	steal_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	steal_overlay.visible = false
-	add_child(steal_overlay)
+	steal_layer.add_child(steal_overlay)
 
 	overlay_container = VBoxContainer.new()
-	overlay_container.position = Vector2(340, 200)
+	overlay_container.position = Vector2(340, 100)
 	overlay_container.size = Vector2(600, 300)
 	overlay_container.add_theme_constant_override("separation", 10)
 	overlay_container.visible = false
-	add_child(overlay_container)
+	steal_layer.add_child(overlay_container)
 
 	var ol_title = Label.new()
 	ol_title.text = "STEAL A CARD!"
@@ -339,7 +345,7 @@ func build_ui():
 
 	left_player_label = Label.new()
 	left_player_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	left_player_label.add_theme_font_size_override("font_size", 18)
+	left_player_label.add_theme_font_size_override("font_size", 20)
 	left_player_label.add_theme_color_override("font_color", Color.WHITE)
 	left_player_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_container.add_child(left_player_label)
@@ -362,7 +368,7 @@ func build_ui():
 
 	stealtimer_label = Label.new()
 	stealtimer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stealtimer_label.add_theme_font_size_override("font_size", 18)
+	stealtimer_label.add_theme_font_size_override("font_size", 20)
 	stealtimer_label.add_theme_color_override("font_color", Color.ORANGE)
 	stealtimer_label.position = Vector2(540, 340)
 	stealtimer_label.size = Vector2(200, 30)
@@ -397,7 +403,7 @@ func _announce(msg: String):
 func _add_to_history(msg: String):
 	var entry = Label.new()
 	entry.text = msg
-	entry.add_theme_font_size_override("font_size", 18)
+	entry.add_theme_font_size_override("font_size", 19)
 	entry.add_theme_color_override("font_color", Color(0.5, 1, 0.5))
 	entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -441,7 +447,7 @@ func make_button(text: String, pos: Vector2) -> Button:
 	btn.add_theme_stylebox_override("pressed", pressed_sb)
 	btn.add_theme_stylebox_override("disabled", normal_sb)
 
-	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_font_size_override("font_size", 19)
 	btn.add_theme_color_override("font_color", Color.BLACK)
 	btn.add_theme_color_override("font_disabled_color", Color("808080"))
 
@@ -475,7 +481,9 @@ func start_game():
 		player_folded.append(false)
 		player_bets.append(0)
 	update_chip_labels()
-	await get_tree().create_timer(0.9).timeout
+	for i in range(NUM_PLAYERS):
+		$ChipManager.setup_player_pile(i, player_chips[i])
+	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 	play_round()
 
 func play_round():
@@ -509,7 +517,11 @@ func clear_hands():
 	pot_label.text = "Pot: 0"
 	community_cards.clear()
 	update_chip_labels()
-	await get_tree().create_timer(0.9).timeout
+	$ChipManager.clear_all()
+	for i in range(NUM_PLAYERS):
+		$ChipManager.setup_player_pile(i, player_chips[i])
+	$SoundManager.play_card_shuffle()
+	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 
 func clear_hand_display(player_idx: int):
 	var container = player_panel[player_idx].hand_container
@@ -527,7 +539,11 @@ func ante_phase():
 		player_panel[i].bet_label.text = "Ante: %d" % ante
 	pot_label.text = "Pot: %d" % pot
 	update_chip_labels()
-	await get_tree().create_timer(1.8).timeout
+	for i in range(NUM_PLAYERS):
+		$ChipManager.update_player_pile(i, player_chips[i])
+	$ChipManager.update_pot(pot)
+	$SoundManager.play_chips_stack()
+	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
 
 func build_deck():
 	deck = []
@@ -544,9 +560,10 @@ func deal_phase():
 		for j in range(5):
 			player_hands[i].append(deck.pop_back())
 		update_hand_display(i)
-		await get_tree().create_timer(0.25).timeout
+		$SoundManager.play_card_slide()
+		if RELEASE_MODE: await get_tree().create_timer(0.25).timeout
 	_announce("Cards dealt!")
-	await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 
 func update_hand_display(player_idx: int, face_up: bool = false):
 	var container = player_panel[player_idx].hand_container
@@ -576,9 +593,10 @@ func flop_phase(num_cards: int):
 		var card_pos = Vector2(758 + idx * 120, 332)
 		community_nodes[idx].position = card_pos
 		community_nodes[idx].visible = true
+	$SoundManager.play_card_place()
 	_announce("Flop: %s" % Globals.card_name(community_cards[idx].suit, community_cards[idx].rank) if community_cards.size() > 0 else "")
 	update_all_displays()
-	await get_tree().create_timer(2.1).timeout
+	if RELEASE_MODE: await get_tree().create_timer(2.1).timeout
 
 func betting_round():
 	_announce("Betting round...")
@@ -641,7 +659,7 @@ func betting_round():
 	
 	pot_label.text = "Pot: %d" % pot
 	_announce("Betting round over")
-	await get_tree().create_timer(1.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
 
 func human_betting_turn(player_idx: int, turn_count: int):
 	_announce("Your turn!")
@@ -649,7 +667,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	if call_amount < 0:
 		call_amount = 0
 	var pot_for_bet = pot + player_bets[player_idx]
-	max_raise = max(1, int(pot_for_bet * MAX_BET_PERCENT))
+	max_raise = MAX_BET
 	max_raise = min(max_raise, player_chips[player_idx])
 	min_raise = max(1, call_amount)
 	
@@ -664,7 +682,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	checkcall_button.visible = true
 	
 	var slider_min = 5
-	var slider_max = 100
+	var slider_max = 50
 	var cannot_meet_call = call_amount > slider_max
 	
 	raise_button.visible = can_raise and !cannot_meet_call
@@ -687,6 +705,8 @@ func human_betting_turn(player_idx: int, turn_count: int):
 		"fold":
 			player_folded[player_idx] = true
 			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+			$SoundManager.play_card_shove()
+			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			_announce("You folded")
 		"call":
 			var amount = call_amount
@@ -694,6 +714,9 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			pot += amount
 			player_bets[player_idx] += amount
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+			$SoundManager.play_chip_lay()
+			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+			$ChipManager.update_pot(pot)
 			if call_amount == 0:
 				_announce("You checked")
 			else:
@@ -708,6 +731,9 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			current_bet = player_bets[player_idx]
 			last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+			$SoundManager.play_chips_collide()
+			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+			$ChipManager.update_pot(pot)
 			_announce("You raised to %d" % total_bet)
 		"allin":
 			var amount = min(player_chips[player_idx], 100 - player_bets[player_idx])
@@ -718,11 +744,14 @@ func human_betting_turn(player_idx: int, turn_count: int):
 				current_bet = player_bets[player_idx]
 				last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "All In: %d" % player_bets[player_idx]
+			$SoundManager.play_chips_handle()
+			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+			$ChipManager.update_pot(pot)
 			_announce("You went All In!")
 	
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
-	await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 
 func show_action_buttons(show: bool):
 	fold_button.visible = show
@@ -784,13 +813,13 @@ func _on_difficulty_changed(value: float):
 
 func cpu_betting_turn(player_idx: int, turn_count: int):
 	_announce("%s is thinking..." % player_names[player_idx])
-	await get_tree().create_timer(1.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
 
 	player_ai[player_idx].set_current_player(player_idx)
 	var decision = player_ai[player_idx].get_betting_action(
 		player_hands[player_idx], community_cards, pot,
 		player_bets[player_idx], current_bet, player_chips[player_idx],
-		turn_count, MAX_BET_PERCENT
+		turn_count, MAX_BET
 	)
 
 	match decision.action:
@@ -803,6 +832,9 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 			current_bet = player_bets[player_idx]
 			last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+			$SoundManager.play_chips_collide()
+			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+			$ChipManager.update_pot(pot)
 			_announce("%s raises to %d" % [player_names[player_idx], raise_amt])
 		"call":
 			var amount = mini(decision.amount, player_chips[player_idx])
@@ -810,15 +842,20 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 			pot += amount
 			player_bets[player_idx] += amount
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+			$SoundManager.play_chip_lay()
+			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+			$ChipManager.update_pot(pot)
 			_announce("%s calls" % player_names[player_idx])
 		"fold":
 			player_folded[player_idx] = true
 			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+			$SoundManager.play_card_shove()
+			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			_announce("%s folds" % player_names[player_idx])
 
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
-	await get_tree().create_timer(0.6).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.6).timeout
 
 func discard_phase():
 	_announce("Click on any cards you want to replace")
@@ -835,7 +872,7 @@ func discard_phase():
 			cpu_discard(i)
 	
 	_announce("Draw phase")
-	await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 
 func human_discard(player_idx: int):
 	_announce("Click cards to discard, then press Discard & Draw")
@@ -893,12 +930,13 @@ func human_discard(player_idx: int):
 			player_hands[player_idx].append(deck.pop_back())
 	
 	update_hand_display(player_idx)
+	$SoundManager.play_card_slide()
 	_announce("Drew %d new cards" % num_discard)
-	await get_tree().create_timer(1.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.9).timeout
 
 func cpu_discard(player_idx: int):
 	_announce("%s is discarding..." % player_names[player_idx])
-	await get_tree().create_timer(0.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.8).timeout
 
 	var to_discard = player_ai[player_idx].get_discard_indices(player_hands[player_idx])
 
@@ -922,16 +960,16 @@ func cpu_discard(player_idx: int):
 		_announce("%s kept all cards" % player_names[player_idx])
 
 	update_hand_display(player_idx)
-	await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 
 func steal_phase():
-	_announce("STEAL PHASE!")
+	message_label.text = "STEAL PHASE!"
 	stealtimer_label.visible = true
 	
 	for i in range(NUM_PLAYERS):
 		update_hand_display(i, true)
 	
-	await get_tree().create_timer(1.8).timeout
+	await get_tree().create_timer(0.8).timeout
 	
 	var steal_decisions = [-1, -1, -1, -1]
 	var human_target = 3
@@ -975,19 +1013,28 @@ func steal_phase():
 	for info in steal_info:
 		if !player_is_human[info.stealer]:
 			var card_name = Globals.card_name(info.suit, info.rank)
-			_announce("%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]])
+			message_label.text = "%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]]
 			await get_tree().create_timer(3.0).timeout
 	
-	_announce("Steals complete!")
-	await get_tree().create_timer(1.8).timeout
+	message_label.text = "Steals complete!"
+	await get_tree().create_timer(0.8).timeout
 
 func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
-	return player_ai[player_idx].get_steal_choice(player_hands[player_idx], player_hands[target_idx])
+	var target_hand = player_hands[target_idx]
+	if target_hand.is_empty():
+		return -1
+	var best_idx = 0
+	var best_rank = 0
+	for i in range(target_hand.size()):
+		if target_hand[i].rank > best_rank:
+			best_rank = target_hand[i].rank
+			best_idx = i
+	return best_idx
 
 func show_steal_ui(target_idx: int):
 	steal_overlay.visible = true
 	overlay_container.visible = true
-	steal_choice = -1
+	steal_choice = 1
 	
 	left_player_label.text = "Steal a card from %s!" % player_names[target_idx]
 	
@@ -1023,7 +1070,7 @@ func show_steal_ui(target_idx: int):
 	while (steal_choice < 0) and elapsed < STEAL_TIMER:
 		var remaining = STEAL_TIMER - elapsed
 		overlay_timer.text = "Time: %d" % ceil(remaining)
-		await get_tree().create_timer(0.2).timeout
+		await get_tree().create_timer(0.1).timeout
 		elapsed += 0.1
 	
 	if steal_choice < 0:
@@ -1033,9 +1080,61 @@ func show_steal_ui(target_idx: int):
 	steal_overlay.visible = false
 	overlay_container.visible = false
 
+#broke? func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
+#	return player_ai[player_idx].get_steal_choice(player_hands[player_idx], player_hands[target_idx])
+
+#broke?
+#func show_steal_ui(target_idx: int):
+	#steal_overlay.visible = true
+	#overlay_container.visible = true
+	#steal_choice = -1
+	#
+	#left_player_label.text = "Steal a card from %s!" % player_names[target_idx]
+	#
+	#for c in overlay_hand.get_children():
+		#overlay_hand.remove_child(c)
+		#c.queue_free()
+	#
+	#var hand = player_hands[target_idx]
+	#var temp_nodes = []
+	#
+	#for i in range(hand.size()):
+		#var card = hand[i]
+		#var tr = make_card_sprite()
+		#set_card_sprite(tr, card.suit, card.rank)
+		#var card_idx = i
+		#tr.mouse_filter = Control.MOUSE_FILTER_STOP
+		#
+		#tr.gui_input.connect(func(event: InputEvent):
+			#if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+				#for n in temp_nodes:
+					#n.modulate = Color.WHITE
+				#tr.modulate = Color(1, 0.8, 0)
+				#steal_choice = card_idx
+				#steal_confirm_button.visible = true
+		#)
+		#
+		#overlay_hand.add_child(tr)
+		#temp_nodes.append(tr)
+	#
+	#steal_confirm_button.visible = false
+	#
+	#var start_ms = Time.get_ticks_msec()
+	#while steal_choice < 0 and (Time.get_ticks_msec() - start_ms) < STEAL_TIMER * 1000:
+		#var remaining = STEAL_TIMER - (Time.get_ticks_msec() - start_ms) / 1000.0
+		#overlay_timer.text = "Time: %d" % max(0, ceil(remaining))
+		#if RELEASE_MODE: await get_tree().create_timer(0.1).timeout
+	#
+	#if steal_choice < 0:
+		#_announce("You didn't steal a card in time!")
+	#
+	#steal_confirm_button.visible = false
+	#steal_overlay.visible = false
+	#overlay_container.visible = false
+
 func showdown_phase():
 	_announce("Showdown!")
-	await get_tree().create_timer(1.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
 	
 	for i in range(NUM_PLAYERS):
 		if !player_folded[i]:
@@ -1049,6 +1148,8 @@ func showdown_phase():
 	if active_players.size() == 1:
 		var winner = active_players[0]
 		player_chips[winner] += pot
+		$ChipManager.update_player_pile(winner, player_chips[winner])
+		$ChipManager.update_pot(0)
 		_announce("%s wins (everyone folded)!" % player_names[winner])
 		return
 	
@@ -1058,7 +1159,7 @@ func showdown_phase():
 		var result = evaluate_best_hand(all_cards)
 		results.append({player = i, result = result})
 		_announce("%s: %s" % [player_names[i], hand_result_name(result)])
-		await get_tree().create_timer(1.8).timeout
+		if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
 	
 	results.sort_custom(func(a, b): return compare_hands(a.result, b.result) > 0)
 	
@@ -1071,6 +1172,8 @@ func showdown_phase():
 	var share = pot / tied.size()
 	for t in tied:
 		player_chips[t.player] += share
+		$ChipManager.update_player_pile(t.player, player_chips[t.player])
+	$ChipManager.update_pot(0)
 	
 	if best.player == 0:
 		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)])

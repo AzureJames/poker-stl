@@ -537,6 +537,7 @@ func ante_phase():
 		player_chips[i] -= ante
 		pot += ante
 		player_panel[i].bet_label.text = "Ante: %d" % ante
+		$ChipManager.add_pot_contribution(i, ante)
 	pot_label.text = "Pot: %d" % pot
 	update_chip_labels()
 	for i in range(NUM_PLAYERS):
@@ -715,6 +716,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			player_bets[player_idx] += amount
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
 			$SoundManager.play_chip_lay()
+			$ChipManager.add_pot_contribution(player_idx, amount)
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			$ChipManager.update_pot(pot)
 			if call_amount == 0:
@@ -732,9 +734,10 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
 			$SoundManager.play_chips_collide()
+			$ChipManager.add_pot_contribution(player_idx, total_bet)
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			$ChipManager.update_pot(pot)
-			_announce("You raised to %d" % total_bet)
+			_announce("You raised to %d" % player_bets[player_idx])
 		"allin":
 			var amount = min(player_chips[player_idx], 100 - player_bets[player_idx])
 			player_chips[player_idx] -= amount
@@ -745,6 +748,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 				last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "All In: %d" % player_bets[player_idx]
 			$SoundManager.play_chips_handle()
+			$ChipManager.add_pot_contribution(player_idx, amount)
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			$ChipManager.update_pot(pot)
 			_announce("You went All In!")
@@ -833,9 +837,10 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 			last_raiser = player_idx
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
 			$SoundManager.play_chips_collide()
+			$ChipManager.add_pot_contribution(player_idx, raise_amt)
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			$ChipManager.update_pot(pot)
-			_announce("%s raises to %d" % [player_names[player_idx], raise_amt])
+			_announce("%s raises to %d" % [player_names[player_idx], player_bets[player_idx]])
 		"call":
 			var amount = mini(decision.amount, player_chips[player_idx])
 			player_chips[player_idx] -= amount
@@ -843,6 +848,7 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 			player_bets[player_idx] += amount
 			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
 			$SoundManager.play_chip_lay()
+			$ChipManager.add_pot_contribution(player_idx, amount)
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			$ChipManager.update_pot(pot)
 			_announce("%s calls" % player_names[player_idx])
@@ -1370,7 +1376,10 @@ func evaluate_5(cards: Array) -> Dictionary:
 func hand_result_name(result: Dictionary) -> String:
 	var name = Globals.HAND_NAME[result.type]
 	if !result.ranks.is_empty():
-		name += " (%s)" % _rank_str(result.ranks)
+		if result.type == Globals.HandType.PAIR:
+			name += " (%s)" % Globals.RANK_NAME.get(result.ranks[0], "?")
+		else:
+			name += " (%s)" % _rank_str(result.ranks)
 	return name
 
 func _rank_str(ranks: Array) -> String:

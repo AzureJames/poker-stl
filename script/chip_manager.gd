@@ -25,6 +25,7 @@ const CR = {
 
 var _piles: Array[Control] = []
 var _pot_container: Control
+var _pot_contributions: Array[int] = [0, 0, 0, 0]
 
 func _ready():
 	_atlas = load(ATLAS_PATH)
@@ -80,21 +81,41 @@ func setup_player_pile(player_idx: int, total_chips: int):
 func update_player_pile(player_idx: int, total_chips: int):
 	_build_pile(player_idx, total_chips)
 
+func add_pot_contribution(player_idx: int, amount: int):
+	_pot_contributions[player_idx] += amount
+
 func update_pot(total_pot: int):
 	_clear_pot()
 	var count = clampi(total_pot / 10, 2, 48)
-	var colors := [CR.TEAL, CR.GREY, CR.GREEN, CR.BLUE]
-	for i in range(count):
-		var cr = colors[i % colors.size()]
+	var total_contrib = 0
+	for c in _pot_contributions:
+		total_contrib += c
+	if total_contrib == 0:
+		total_contrib = 1
+	var chip_idx := 0
+	for p_idx in range(4):
+		var player_chip_count = int(count * _pot_contributions[p_idx] / total_contrib)
+		for _i in range(player_chip_count):
+			if chip_idx >= count:
+				break
+			var cr = _player_style(p_idx)
+			var tr = _make_chip(cr.x, cr.y)
+			var col = chip_idx / 8
+			var row = chip_idx % 8
+			tr.position = Vector2(col * 60, -row * 5)
+			_pot_container.add_child(tr)
+			chip_idx += 1
+	while chip_idx < count:
+		var cr = CR.DARK_TEAL
 		var tr = _make_chip(cr.x, cr.y)
-		var col = i / 8
-		var row = i % 8
-		var heightPerChip := 5
-		var rowSeperation := 60
-		tr.position = Vector2(col * rowSeperation, -row * heightPerChip)
+		var col = chip_idx / 8
+		var row = chip_idx % 8
+		tr.position = Vector2(col * 60, -row * 5)
 		_pot_container.add_child(tr)
+		chip_idx += 1
 
 func clear_all():
+	_pot_contributions = [0, 0, 0, 0]
 	for i in range(4):
 		_build_pile(i, 0)
 	_clear_pot()

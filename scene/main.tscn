@@ -4,8 +4,11 @@
 [ext_resource type="FontFile" uid="uid://y7wadv3p321g" path="res://asset/fonts/VT323-Regular.ttf" id="3_brvut"]
 [ext_resource type="Texture2D" uid="uid://pw01ihcm8aot" path="res://asset/grey_bevel_normal.png" id="4_0ha60"]
 [ext_resource type="Script" uid="uid://c6e28watsammr" path="res://scene/startmenu_box_container.gd" id="4_4j5ol"]
+[ext_resource type="Texture2D" uid="uid://bhitrc4hl4pbx" path="res://asset/card_games,cards,clubs,diamonds,games,hearts,leisure,playing_cards,spades,stamps,symbols,MC900097535.png" id="5_b5f6u"]
 [ext_resource type="Script" uid="uid://bpeul321albt" path="res://script/sound_manager.gd" id="5_qx8fy"]
 [ext_resource type="Script" uid="uid://joc4crsppm7s" path="res://script/chip_manager.gd" id="6_4j5ol"]
+[ext_resource type="Texture2D" uid="uid://bbfv2dh8efp02" path="res://asset/card_games,cards,clubs,diamonds,games,hearts,leisure,playing_cards,spades,stamps,symbols,MC900150875.png" id="6_tqoya"]
+[ext_resource type="Texture2D" uid="uid://d06t85bnsc1oo" path="res://asset/ace_of_spades,aces,card_games,creatures,fantasy,games,households,leisure,luck,metaphors,playing_cards,recreation,MC900364276.png" id="7_k65ib"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
 
@@ -27,7 +30,7 @@ offset_left = -109.0
 offset_top = -51.0
 offset_right = 1817.0
 offset_bottom = 939.0
-color = Color(0.53258264, 0.732209, 0.26911634, 1)
+color = Color(0.49859595, 0.68717146, 0.25052482, 1)
 
 [node name="RichTextLabel" type="RichTextLabel" parent="StartMenu/ColorRect" unique_id=1980501796]
 layout_mode = 0
@@ -87,6 +90,18 @@ patch_margin_left = 4
 patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
+
+[node name="Sprite2D" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=1457418972]
+position = Vector2(675, 455)
+texture = ExtResource("5_b5f6u")
+
+[node name="Sprite2D2" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=488014764]
+position = Vector2(1125, 455)
+texture = ExtResource("6_tqoya")
+
+[node name="Sprite2D3" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=520594047]
+position = Vector2(1188, 234)
+texture = ExtResource("7_k65ib")
 
 [node name="SoundManager" type="Node" parent="." unique_id=1441812669]
 script = ExtResource("5_qx8fy")

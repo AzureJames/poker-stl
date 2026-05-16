@@ -64,7 +64,7 @@ func _build_pile(player_idx: int, chip_count: int):
 		pile.remove_child(c)
 		c.queue_free()
 	var cr = _player_style(player_idx)
-	var n = clampi(chip_count / 200 + 1, 2, 7)
+	var n = clampi(chip_count / 100 + 1, 2, 17)
 	for i in range(n):
 		var tr = _make_chip(cr.x, cr.y)
 		tr.position = Vector2(0, -i * 5)

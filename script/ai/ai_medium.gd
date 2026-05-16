@@ -30,8 +30,10 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 		amt = min(amt, player_chips)
 		amt = min(amt, 100 - player_bet)
 		return {"action": "raise", "amount": amt}
-	elif strength > 0.2 - looseness * 0.15 or randf() > 0.3:
+	elif strength > 0.2 - looseness * 0.15:
 		return {"action": "call", "amount": call_amt}
+	elif call_amt == 0:
+		return {"action": "call", "amount": 0}
 	else:
 		return {"action": "fold", "amount": 0}
 

@@ -80,20 +80,42 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 	var outs = _count_outs(hand, community)
 	var implied = strength + (float(outs) / 47.0) * 0.3
 
+	var raise_thresh = 0.6 - aggro * 0.3
+	var draw_thresh = 0.3 - aggro * 0.25
+	var can_bluff = can_raise and strength < 0.35 and opp_aggro < 0.4 and randf() > 1.0 - bluff
+
 	var effective = strength
 	if pot_odds > 0:
 		effective -= pot_odds * 0.5
 
-	var raise_thresh = 0.6 - aggro * 0.3
-	var draw_thresh = 0.3 - aggro * 0.25
-	var can_bluff = can_raise and strength < 0.35 and opp_aggro < 0.4 and randf() > 1.0 - bluff
+	# 5% chance to max bluff regardless
+	if can_raise and randf() < 0.05:
+		var amt = min(max_bet, player_chips)
+		amt = min(amt, 100 - player_bet)
+		if _current_player >= 0: _track_opponent(_current_player, "raise")
+		return {"action": "raise", "amount": amt}
+
+	# Raise to max on very strong hands (denial + pressure)
+	if can_raise and strength > 0.85:
+		var amt = min(max_bet, player_chips)
+		amt = min(amt, 100 - player_bet)
+		if _current_player >= 0: _track_opponent(_current_player, "raise")
+		return {"action": "raise", "amount": amt}
+
+	# 25% bluff on medium strength if no bet to call (last round was a check)
+	if can_raise and call_amt == 0 and strength >= 0.25 and strength <= 0.55 and randf() < 0.25:
+		var bet_frac = 0.25 + strength * 0.3
+		var amt = min(max_bet, max(call_amt, int(pot_for_bet * bet_frac)))
+		amt = max(1, int(amt))
+		amt = min(amt, player_chips)
+		amt = min(amt, 100 - player_bet)
+		if _current_player >= 0: _track_opponent(_current_player, "raise")
+		return {"action": "raise", "amount": amt}
 
 	if can_raise and ((strength > raise_thresh) or (strength > draw_thresh and outs > 4) or (strength > 0.3 and randf() > 0.3) or can_bluff):
 		var bet_frac = 0.0
 		if can_bluff:
 			bet_frac = 0.25 + randf() * 0.2
-		elif strength > 0.85:
-			bet_frac = 0.6 + strength * 0.25
 		elif strength > 0.6:
 			bet_frac = 0.35 + strength * 0.35
 		else:
@@ -105,9 +127,12 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 		amt = min(amt, 100 - player_bet)
 		if _current_player >= 0: _track_opponent(_current_player, "raise")
 		return {"action": "raise", "amount": amt}
-	elif effective > 0.05 - looseness * 0.08 or implied > pot_odds or (strength > 0.2 - looseness * 0.15 and pot_odds < 0.3) or randf() > 0.15:
+	elif effective > 0.05 - looseness * 0.08 or implied > pot_odds or (strength > 0.2 - looseness * 0.15 and pot_odds < 0.3):
 		if _current_player >= 0: _track_opponent(_current_player, "call")
 		return {"action": "call", "amount": call_amt}
+	elif call_amt == 0:
+		if _current_player >= 0: _track_opponent(_current_player, "call")
+		return {"action": "call", "amount": 0}
 	else:
 		if _current_player >= 0: _track_opponent(_current_player, "fold")
 		return {"action": "fold", "amount": 0}
@@ -125,9 +150,8 @@ func get_discard_indices(hand: Array) -> Array[int]:
 		if rank_counts[c.rank] > 1:
 			continue
 		var flush_draw = suit_counts[c.suit] >= 3
-		var straight_draw = _has_open_ended(hand, c.rank) or _has_straight_draw(hand, c.rank, rank_counts)
-		var live_high = c.rank >= 12 - looseness * 4 and (_seen_ranks.get(c.rank, 0) < 3)
-		if !flush_draw and !straight_draw and !live_high:
+		var straight_possible = _has_straight_draw(hand, c.rank)
+		if !flush_draw and !straight_possible and c.rank < 12:
 			to_discard.append(i)
 
 	if to_discard.size() >= hand.size():
@@ -143,19 +167,30 @@ func get_steal_choice(own_hand: Array, target_hand: Array) -> int:
 
 	var best = 0
 	var best_score = -999
-	for i in range(target_hand.size()):
-		var c = target_hand[i]
+	var max_gain = 0
 
+	for i in range(target_hand.size()):
 		var test = own_hand.duplicate()
-		test.append(c)
-		var gain = _score_hand_set(test)
+		test.append(target_hand[i])
+
+		var gain = _score_hand_set(test) - _score_any_hand(own_hand)
+		if gain > max_gain: max_gain = gain
 
 		var deny = _score_denial(target_hand, i)
+		var defense = _score_defense(test)
 
-		var score = gain * 0.6 + deny * 0.4
+		var score = gain * 0.4 + deny * 0.3 + defense * 0.3
 		if score > best_score:
 			best_score = score
 			best = i
+
+	if max_gain <= 0:
+		best_score = -999
+		for i in range(target_hand.size()):
+			var deny = _score_denial(target_hand, i)
+			if deny > best_score:
+				best_score = deny
+				best = i
 
 	return best
 
@@ -168,6 +203,59 @@ func _score_denial(hand: Array, take_idx: int) -> float:
 	var before = _score_hand_set(hand)
 	var after = _score_hand_set(remaining)
 	return max(0, before - after)
+
+func _score_any_hand(cards: Array) -> float:
+	if cards.size() < 2:
+		return 0.0
+
+	var suits = {}
+	var ranks = []
+	for c in cards:
+		suits[c.suit] = suits.get(c.suit, 0) + 1
+		ranks.append(c.rank)
+
+	var rank_counts = {}
+	for r in ranks:
+		rank_counts[r] = rank_counts.get(r, 0) + 1
+
+	var pairs = 0; var trips = 0; var quads = 0
+	for c in rank_counts.values():
+		if c == 4: quads += 1
+		elif c == 3: trips += 1
+		elif c == 2: pairs += 1
+
+	var max_suit = 0
+	for s in suits.values():
+		if s > max_suit: max_suit = s
+
+	ranks.sort()
+	ranks.reverse()
+
+	var s = 0.0
+	if quads > 0: s = 100
+	elif trips > 0 and pairs > 0: s = 90
+	elif trips > 0: s = 60
+	elif pairs >= 2: s = 45
+	elif pairs >= 1: s = 25
+	else: s = ranks[0] if ranks.size() > 0 else 0
+
+	if max_suit >= 4: s += 15
+	elif max_suit >= 3: s += 5
+
+	return s
+
+func _score_defense(hand: Array) -> float:
+	if hand.size() <= 1:
+		return 0.0
+
+	var worst = 999
+	for i in range(hand.size()):
+		var test = hand.duplicate()
+		test.remove_at(i)
+		var s = _score_any_hand(test)
+		if s < worst: worst = s
+
+	return worst
 
 func _score_hand_set(cards: Array) -> float:
 	if cards.size() < 5:
@@ -209,49 +297,20 @@ func _score_hand_set(cards: Array) -> float:
 
 	return s
 
-func _has_open_ended(hand: Array, rank: int) -> bool:
+func _has_straight_draw(hand: Array, rank: int) -> bool:
 	var ranks = []
 	for c in hand:
 		ranks.append(c.rank)
+	ranks.append(rank)
 	ranks.sort()
-	var uniq = []
-	for r in ranks:
-		if !uniq.has(r):
-			uniq.append(r)
-
-	for start in range(2, 11):
-		var needed = 0
-		var count = 0
-		for r in range(start, start + 5):
-			if uniq.has(r):
-				count += 1
-			elif r == rank:
-				needed += 1
-		if count >= 4 and needed <= 1:
-			return true
-
-	return false
-
-func _has_straight_draw(hand: Array, rank: int, rank_counts: Dictionary) -> bool:
-	var ranks = []
-	for c in hand:
-		ranks.append(c.rank)
-	ranks.sort()
-	var consecutive = 0
-	var gap_count = 0
+	var consecutive = 1
 	for i in range(1, ranks.size()):
-		var diff = ranks[i] - ranks[i - 1]
-		if diff == 1:
+		if ranks[i] - ranks[i - 1] == 1:
 			consecutive += 1
-			if consecutive >= 2:
+			if consecutive >= 3:
 				return true
-		elif diff == 2:
-			gap_count += 1
-			if consecutive + gap_count >= 2:
-				return true
-		else:
-			consecutive = 0
-			gap_count = 0
+		elif ranks[i] - ranks[i - 1] > 1:
+			consecutive = 1
 	return false
 
 func _eval_strength(hand: Array, community: Array) -> float:

@@ -1035,16 +1035,7 @@ func steal_phase():
 	await get_tree().create_timer(0.8).timeout
 
 func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
-	var target_hand = player_hands[target_idx]
-	if target_hand.is_empty():
-		return -1
-	var best_idx = 0
-	var best_rank = 0
-	for i in range(target_hand.size()):
-		if target_hand[i].rank > best_rank:
-			best_rank = target_hand[i].rank
-			best_idx = i
-	return best_idx
+	return player_ai[player_idx].get_steal_choice(player_hands[player_idx], player_hands[target_idx])
 
 func show_steal_ui(target_idx: int):
 	steal_overlay.visible = true
@@ -1101,9 +1092,6 @@ func show_steal_ui(target_idx: int):
 	steal_confirm_button.visible = false
 	steal_overlay.visible = false
 	overlay_container.visible = false
-
-#broke? func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
-#	return player_ai[player_idx].get_steal_choice(player_hands[player_idx], player_hands[target_idx])
 
 #broke?
 #func show_steal_ui(target_idx: int):

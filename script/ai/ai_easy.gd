@@ -21,43 +21,29 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 	var call_thresh = 0.25 - looseness * 0.15
 
 	if can_raise and (strength > raise_thresh or (strength > semi_thresh and randf() > 0.5)):
-		var amt = min(max_bet, max(call_amt + int(max_bet * 0.5), int(max_bet * 0.3)))
+		var amt = min(max_bet, call_amt + 1)
 		amt = max(1, int(amt))
 		amt = min(amt, player_chips)
 		amt = min(amt, 100 - player_bet)
 		return {"action": "raise", "amount": amt}
-	elif can_raise and strength < 0.3 and randf() > 1.0 - bluff:
+	if can_raise and strength < 0.3 and randf() > 1.0 - bluff:
 		return {"action": "raise", "amount": call_amt + 1}
-	elif strength > call_thresh or randf() > 0.35:
+	if strength > call_thresh:
 		return {"action": "call", "amount": call_amt}
-	else:
+	if randf() < 0.02:
 		return {"action": "fold", "amount": 0}
+	else:
+		return {"action": "call", "amount": call_amt}
 
 func get_steal_choice(own_hand: Array, target_hand: Array) -> int:
 	if target_hand.is_empty():
 		return -1
-	var best = 0
-	var best_rank = 0
-	for i in range(target_hand.size()):
-		if target_hand[i].rank > best_rank:
-			best_rank = target_hand[i].rank
-			best = i
-	return best
+	return randi() % target_hand.size()
 
 func get_discard_indices(hand: Array) -> Array[int]:
-	var rank_counts = {}
-	for c in hand:
-		rank_counts[c.rank] = rank_counts.get(c.rank, 0) + 1
-
-	var to_discard: Array[int] = []
-	for i in range(hand.size()):
-		if rank_counts[hand[i].rank] == 1 and hand[i].rank < 11:
-			to_discard.append(i)
-
-	if to_discard.is_empty() and hand.size() > 0:
-		to_discard = [hand.size() - 1]
-
-	return to_discard
+	if hand.is_empty():
+		return []
+	return [randi() % hand.size()]
 
 func _eval_strength(hand: Array, community: Array) -> float:
 	var all_cards = hand + community

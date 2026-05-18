@@ -71,6 +71,8 @@ var difficulty_label: Label
 var info_label: Label
 var end_label: Label
 var history_container: VBoxContainer
+var poker_hands_image: TextureRect
+var poker_hands_toggle: Button
 
 func _ready():
 	randomize()
@@ -393,7 +395,25 @@ func build_ui():
 	history_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(history_container)
 
+	poker_hands_image = TextureRect.new()
+	poker_hands_image.texture = load("res://asset/Poker-Hands.png")
+	poker_hands_image.stretch_mode = TextureRect.StretchMode.STRETCH_TILE
+	poker_hands_image.scale = Vector2(.42,.42)
+	poker_hands_image.position = Vector2(750, 50)
+	poker_hands_image.size = Vector2(300, 500)
+	poker_hands_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	poker_hands_image.visible = false
+	poker_hands_image.z_index = 5
+	add_child(poker_hands_image)
+
+	poker_hands_toggle = make_button("Hands", Vector2(1470, 10))
+	poker_hands_toggle.pressed.connect(_toggle_poker_hands)
+	add_child(poker_hands_toggle)
+
 	move_child(action_bar, get_child_count() - 1)
+
+func _toggle_poker_hands():
+	poker_hands_image.visible = not poker_hands_image.visible
 
 func _announce(msg: String):
 	message_label.text = msg
@@ -554,6 +574,7 @@ func build_deck():
 	deck.shuffle()
 
 func deal_phase():
+	$SoundManager.play_card_slide()
 	_announce("Dealing...")
 	build_deck()
 	for i in range(NUM_PLAYERS):
@@ -561,7 +582,6 @@ func deal_phase():
 		for j in range(5):
 			player_hands[i].append(deck.pop_back())
 		update_hand_display(i)
-		$SoundManager.play_card_slide()
 		if RELEASE_MODE: await get_tree().create_timer(0.25).timeout
 	_announce("Cards dealt!")
 	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
@@ -583,6 +603,9 @@ func update_hand_display(player_idx: int, face_up: bool = false):
 		container.add_child(tr)
 		nodes.append(tr)
 	player_hand_nodes[player_idx] = nodes
+	if player_folded[player_idx]:
+		for node in nodes:
+			node.modulate = Color(0.5, 0.5, 0.5, 0.5)
 
 func flop_phase(num_cards: int):
 	if community_cards.size() < num_cards:
@@ -706,6 +729,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 		"fold":
 			player_folded[player_idx] = true
 			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+			update_hand_display(player_idx)
 			$SoundManager.play_card_shove()
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			_announce("You folded")
@@ -851,10 +875,12 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 			$ChipManager.add_pot_contribution(player_idx, amount)
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			$ChipManager.update_pot(pot)
-			_announce("%s calls" % player_names[player_idx])
+			if amount == 0: _announce("%s checks" % player_names[player_idx])
+			else: _announce("%s calls" % player_names[player_idx])
 		"fold":
 			player_folded[player_idx] = true
 			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+			update_hand_display(player_idx)
 			$SoundManager.play_card_shove()
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			_announce("%s folds" % player_names[player_idx])

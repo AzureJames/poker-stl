@@ -32,7 +32,7 @@ func _load_group(base: String, count: int) -> Array[AudioStream]:
 	return arr
 
 func _load_sounds():
-	_card_slide = _load_group("res://asset/Audio/card-slide", 8)
+	_card_slide = _load_group("res://asset/Audio/card-fan", 2)
 	_card_place = _load_group("res://asset/Audio/card-place", 4)
 	_card_shove = _load_group("res://asset/Audio/card-shove", 4)
 	_card_shuffle = [load("res://asset/Audio/shuffleandbridge.wav")]

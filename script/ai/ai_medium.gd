@@ -19,6 +19,12 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 	var raise_thresh = 0.7 - aggro * 0.3
 	var semi_thresh = 0.4 - aggro * 0.25
 
+	var pot_odds = 0.0
+	if call_amt > 0:
+		pot_odds = float(call_amt) / float(pot + call_amt)
+
+	var effective = strength - pot_odds * 0.3
+
 	if can_raise and (strength > raise_thresh or (strength > semi_thresh and randf() > 0.45)):
 		var amt = min(max_bet, max(call_amt, int(max_bet * (0.2 + randf() * 0.2))))
 		amt = max(1, int(amt))
@@ -30,10 +36,12 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 		amt = min(amt, player_chips)
 		amt = min(amt, 100 - player_bet)
 		return {"action": "raise", "amount": amt}
-	elif strength > 0.2 - looseness * 0.15:
+	elif effective > 0.2 - looseness * 0.15:
 		return {"action": "call", "amount": call_amt}
 	elif call_amt == 0:
 		return {"action": "call", "amount": 0}
+	elif strength > 0.15 and randf() > 0.5:
+		return {"action": "call", "amount": call_amt}
 	else:
 		return {"action": "fold", "amount": 0}
 

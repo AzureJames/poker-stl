@@ -415,10 +415,15 @@ func build_ui():
 func _toggle_poker_hands():
 	poker_hands_image.visible = not poker_hands_image.visible
 
-func _announce(msg: String):
+func _announce(msg: String, _scale = Vector2(1,1)):
+	message_label.scale = scale
 	message_label.text = msg
 	if msg != "":
 		_add_to_history(msg)
+		
+func _announce_quiet(msg: String, _scale = Vector2(1,1)):
+	message_label.scale = scale
+	message_label.text = msg
 
 func _add_to_history(msg: String):
 	var entry = Label.new()
@@ -840,7 +845,7 @@ func _on_difficulty_changed(value: float):
 	difficulty_label.text = labels[idx]
 
 func cpu_betting_turn(player_idx: int, turn_count: int):
-	_announce("%s is thinking..." % player_names[player_idx])
+	_announce_quiet("%s is thinking..." % player_names[player_idx])
 	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
 
 	player_ai[player_idx].set_current_player(player_idx)
@@ -1171,6 +1176,7 @@ func show_steal_ui(target_idx: int):
 func showdown_phase():
 	_announce("Showdown!")
 	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
+
 	
 	for i in range(NUM_PLAYERS):
 		if !player_folded[i]:
@@ -1180,13 +1186,15 @@ func showdown_phase():
 	for i in range(NUM_PLAYERS):
 		if !player_folded[i]:
 			active_players.append(i)
+			
+	$SoundManager.play_win()
 	
 	if active_players.size() == 1:
 		var winner = active_players[0]
 		player_chips[winner] += pot
 		$ChipManager.update_player_pile(winner, player_chips[winner])
 		$ChipManager.update_pot(0)
-		_announce("%s wins (everyone folded)!" % player_names[winner])
+		_announce("%s wins (everyone folded)!" % player_names[winner], Vector2(2,2))
 		return
 	
 	var results = []
@@ -1212,9 +1220,9 @@ func showdown_phase():
 	$ChipManager.update_pot(0)
 	
 	if best.player == 0:
-		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)])
+		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)], Vector2(2,2))
 	else:
-		_announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)])
+		_announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)], Vector2(2,2))
 	update_chip_labels()
 
 func round_end():

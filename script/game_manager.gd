@@ -4,7 +4,7 @@ const NUM_PLAYERS = 4
 const STARTING_CHIPS = 1000
 const ANTE_PERCENT = 0.05
 const MAX_BET = 50
-const STEAL_TIMER = 15.0
+const STEAL_TIMER = 21.0
 const CARD_W = 88
 const CARD_H = 124
 const RELEASE_MODE := true
@@ -84,6 +84,25 @@ func _on_discard_pressed():
 func _on_new_round_pressed():
 	new_round_button.visible = false
 
+func _reset_game():
+	player_chips = []
+	player_hands = []
+	player_folded = []
+	player_bets = []
+	for i in range(NUM_PLAYERS):
+		player_chips.append(STARTING_CHIPS)
+		player_hands.append([])
+		player_folded.append(false)
+		player_bets.append(0)
+	end_label.visible = false
+	update_chip_labels()
+	for i in range(NUM_PLAYERS):
+		$ChipManager.setup_player_pile(i, player_chips[i])
+	$ChipManager.clear_all()
+	$ChipManager.update_pot(0)
+	pot_label.text = "Pot: 0"
+	_announce("")
+
 func build_ui():
 	var theme = Theme.new()
 	theme.default_font = Globals.ui_font
@@ -109,18 +128,18 @@ func build_ui():
 	pot_label = Label.new()
 	pot_label.text = "Pot: 0"
 	pot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pot_label.add_theme_font_size_override("font_size", 24)
+	pot_label.add_theme_font_size_override("font_size", 26)
 	pot_label.add_theme_color_override("font_color", Color.WHITE)
-	pot_label.position = Vector2(560, 250)
+	pot_label.position = Vector2(530, 220)
 	pot_label.size = Vector2(200, 40)
 	pot_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(pot_label)
 
 	message_label = Label.new()
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	message_label.add_theme_font_size_override("font_size", 21)
+	message_label.add_theme_font_size_override("font_size", 22)
 	message_label.add_theme_color_override("font_color", Color.WHITE)
-	message_label.position = Vector2(390, 290)
+	message_label.position = Vector2(390, 280)
 	message_label.size = Vector2(500, 40)
 	message_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(message_label)
@@ -415,8 +434,9 @@ func build_ui():
 func _toggle_poker_hands():
 	poker_hands_image.visible = not poker_hands_image.visible
 
-func _announce(msg: String, _scale = Vector2(1,1)):
-	message_label.scale = scale
+func _announce(msg: String, _scale = null):
+	if _scale != null: message_label.add_theme_font_size_override("font_size", _scale)
+	else: message_label.add_theme_font_size_override("font_size", 22)
 	message_label.text = msg
 	if msg != "":
 		_add_to_history(msg)
@@ -695,6 +715,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	call_amount = current_bet - player_bets[player_idx]
 	if call_amount < 0:
 		call_amount = 0
+	call_amount = mini(call_amount, player_chips[player_idx])
 	var pot_for_bet = pot + player_bets[player_idx]
 	max_raise = MAX_BET
 	max_raise = min(max_raise, player_chips[player_idx])
@@ -756,6 +777,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			var raise_amount = int(bet_slider.value)
 			var max_allowed = 100 - player_bets[player_idx]
 			var total_bet = mini(raise_amount, max_allowed)
+			total_bet = mini(total_bet, player_chips[player_idx])
 			player_chips[player_idx] -= total_bet
 			pot += total_bet
 			player_bets[player_idx] += total_bet
@@ -767,20 +789,6 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			$ChipManager.update_pot(pot)
 			_announce("You raised to %d" % player_bets[player_idx])
-		"allin":
-			var amount = min(player_chips[player_idx], 100 - player_bets[player_idx])
-			player_chips[player_idx] -= amount
-			pot += amount
-			player_bets[player_idx] += amount
-			if player_bets[player_idx] > current_bet:
-				current_bet = player_bets[player_idx]
-				last_raiser = player_idx
-			player_panel[player_idx].bet_label.text = "All In: %d" % player_bets[player_idx]
-			$SoundManager.play_chips_handle()
-			$ChipManager.add_pot_contribution(player_idx, amount)
-			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
-			$ChipManager.update_pot(pot)
-			_announce("You went All In!")
 	
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
@@ -859,17 +867,31 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 		"raise":
 			var raise_amt = clampi(decision.amount, 1, 100 - player_bets[player_idx])
 			raise_amt = mini(raise_amt, player_chips[player_idx])
-			player_chips[player_idx] -= raise_amt
-			pot += raise_amt
-			player_bets[player_idx] += raise_amt
-			current_bet = player_bets[player_idx]
-			last_raiser = player_idx
-			player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-			$SoundManager.play_chips_collide()
-			$ChipManager.add_pot_contribution(player_idx, raise_amt)
-			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
-			$ChipManager.update_pot(pot)
-			_announce("%s raises to %d" % [player_names[player_idx], player_bets[player_idx]])
+			var new_total = player_bets[player_idx] + raise_amt
+			if new_total > current_bet:
+				player_chips[player_idx] -= raise_amt
+				pot += raise_amt
+				player_bets[player_idx] = new_total
+				current_bet = new_total
+				last_raiser = player_idx
+				player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+				$SoundManager.play_chips_collide()
+				$ChipManager.add_pot_contribution(player_idx, raise_amt)
+				$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+				$ChipManager.update_pot(pot)
+				_announce("%s raises to %d" % [player_names[player_idx], player_bets[player_idx]])
+			else:
+				var amount = mini(max(0, current_bet - player_bets[player_idx]), player_chips[player_idx])
+				player_chips[player_idx] -= amount
+				pot += amount
+				player_bets[player_idx] += amount
+				player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+				$SoundManager.play_chip_lay()
+				$ChipManager.add_pot_contribution(player_idx, amount)
+				$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+				$ChipManager.update_pot(pot)
+				if amount == 0: _announce("%s checks" % player_names[player_idx])
+				else: _announce("%s calls" % player_names[player_idx])
 		"call":
 			var amount = mini(decision.amount, player_chips[player_idx])
 			player_chips[player_idx] -= amount
@@ -1187,14 +1209,15 @@ func showdown_phase():
 		if !player_folded[i]:
 			active_players.append(i)
 			
-	$SoundManager.play_win()
+
 	
 	if active_players.size() == 1:
 		var winner = active_players[0]
 		player_chips[winner] += pot
 		$ChipManager.update_player_pile(winner, player_chips[winner])
 		$ChipManager.update_pot(0)
-		_announce("%s wins (everyone folded)!" % player_names[winner], Vector2(2,2))
+		_announce("%s wins (everyone folded)!" % player_names[winner], 55)
+		$SoundManager.play_win()
 		return
 	
 	var results = []
@@ -1220,9 +1243,11 @@ func showdown_phase():
 	$ChipManager.update_pot(0)
 	
 	if best.player == 0:
-		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)], Vector2(2,2))
+		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)], 55)
+		$SoundManager.play_win()
 	else:
-		_announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)], Vector2(2,2))
+		_announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)], 55)
+		$SoundManager.play_win()
 	update_chip_labels()
 
 func round_end():
@@ -1238,6 +1263,12 @@ func round_end():
 		end_label.visible = true
 		return
 	
+	var player_bankrupt = player_chips[0] <= 0
+	if player_bankrupt:
+		_announce("You lose!")
+		end_label.text = "You're out of chips! Press New Round to restart."
+		end_label.visible = true
+	
 	for i in range(NUM_PLAYERS):
 		player_panel[i].bet_label.text = ""
 	
@@ -1246,6 +1277,9 @@ func round_end():
 	await new_round_button.pressed
 	if new_round_button.pressed.is_connected(_on_new_round_pressed):
 		new_round_button.pressed.disconnect(_on_new_round_pressed)
+	
+	if player_bankrupt:
+		_reset_game()
 	
 	play_round()
 

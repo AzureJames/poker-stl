@@ -141,6 +141,11 @@ script = ExtResource("5_qx8fy")
 [node name="ChipManager" type="Node" parent="." unique_id=1134768523]
 script = ExtResource("6_4j5ol")
 
+[node name="HSlider" type="HSlider" parent="." unique_id=1292230791]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 16.0
+
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button2" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_2_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button3" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_3_pressed"]

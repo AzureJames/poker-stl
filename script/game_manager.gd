@@ -219,6 +219,7 @@ func build_ui():
 	bet_slider.step = 5
 	bet_slider.value = 5
 	bet_slider.value_changed.connect(_on_bet_slider_changed)
+	_style_slider(bet_slider)
 	action_bar.add_child(bet_slider)
 
 	bet_value_label = Label.new()
@@ -248,6 +249,7 @@ func build_ui():
 	difficulty_slider.tick_count = 3
 	difficulty_slider.value = 0
 	difficulty_slider.value_changed.connect(_on_difficulty_changed)
+	_style_slider(difficulty_slider)
 	add_child(difficulty_slider)
 
 	difficulty_label = Label.new()
@@ -460,6 +462,41 @@ func _add_to_history(msg: String):
 		history_container.get_child(history_container.get_child_count() - 1).queue_free()
 	for i in range(1, history_container.get_child_count()):
 		history_container.get_child(i).add_theme_color_override("font_color", Color.BLACK)
+
+func _style_slider(slider: HSlider):
+	var slide_sb = StyleBoxTexture.new()
+	slide_sb.texture = Globals.grey_bevel_normal
+	slide_sb.texture_margin_left = 4
+	slide_sb.texture_margin_top = 4
+	slide_sb.texture_margin_right = 4
+	slide_sb.texture_margin_bottom = 4
+
+	var slide_hover = StyleBoxTexture.new()
+	slide_hover.texture = Globals.grey_bevel_hover
+	slide_hover.texture_margin_left = 4
+	slide_hover.texture_margin_top = 4
+	slide_hover.texture_margin_right = 4
+	slide_hover.texture_margin_bottom = 4
+
+	var fill_sb = StyleBoxTexture.new()
+	fill_sb.texture = Globals.grey_bevel_pressed
+	fill_sb.texture_margin_left = 4
+	fill_sb.texture_margin_top = 4
+	fill_sb.texture_margin_right = 4
+	fill_sb.texture_margin_bottom = 4
+
+	slider.add_theme_stylebox_override("slide", slide_sb)
+	slider.add_theme_stylebox_override("grabber_area", fill_sb)
+	slider.add_theme_icon_override("grabber", Globals.grey_bevel_normal)
+	slider.add_theme_icon_override("grabber_highlight", Globals.grey_bevel_hover)
+	slider.add_theme_constant_override("center_grabber", 0)
+
+	slider.mouse_entered.connect(func():
+		slider.add_theme_stylebox_override("slide", slide_hover)
+	)
+	slider.mouse_exited.connect(func():
+		slider.add_theme_stylebox_override("slide", slide_sb)
+	)
 
 func make_button(text: String, pos: Vector2) -> Button:
 	var btn = Button.new()

@@ -3,7 +3,7 @@ extends Control
 const NUM_PLAYERS = 4
 const STARTING_CHIPS = 1000
 const ANTE_PERCENT = 0.05
-const MAX_BET = 50
+const MAX_BET = 65
 const STEAL_TIMER = 21.0
 const CARD_W = 88
 const CARD_H = 124
@@ -139,8 +139,9 @@ func build_ui():
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.add_theme_font_size_override("font_size", 22)
 	message_label.add_theme_color_override("font_color", Color.WHITE)
-	message_label.position = Vector2(390, 280)
+	message_label.position = Vector2(390, 275)
 	message_label.size = Vector2(500, 40)
+	message_label.z_index = 9
 	message_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(message_label)
 
@@ -732,10 +733,11 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	checkcall_button.visible = true
 	
 	var slider_min = 5
-	var slider_max = 50
+	var slider_max = 65
 	var cannot_meet_call = call_amount > slider_max
+	var pot_limit = pot >= 595
 	
-	raise_button.visible = can_raise and !cannot_meet_call
+	raise_button.visible = can_raise and !cannot_meet_call and !pot_limit
 	allin_button.visible = can_raise and !cannot_meet_call
 	bet_amt_label.visible = can_raise
 	bet_slider.visible = can_raise and !cannot_meet_call
@@ -775,9 +777,38 @@ func human_betting_turn(player_idx: int, turn_count: int):
 				_announce("You called")
 		"raise":
 			var raise_amount = int(bet_slider.value)
-			var max_allowed = 100 - player_bets[player_idx]
+			var max_allowed = 130 - player_bets[player_idx]
 			var total_bet = mini(raise_amount, max_allowed)
 			total_bet = mini(total_bet, player_chips[player_idx])
+			if pot + total_bet > 595:
+				_announce("Pot limit reached")
+				show_action_buttons(true)
+				action = await _wait_for_human_action()
+				show_action_buttons(false)
+				match action:
+					"fold":
+						player_folded[player_idx] = true
+						player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+						update_hand_display(player_idx)
+						$SoundManager.play_card_shove()
+						$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+						_announce("You folded")
+					"call":
+						var amt = call_amount
+						player_chips[player_idx] -= amt
+						pot += amt
+						player_bets[player_idx] += amt
+						player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+						$SoundManager.play_chip_lay()
+						$ChipManager.add_pot_contribution(player_idx, amt)
+						$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+						$ChipManager.update_pot(pot)
+						if amt == 0: _announce("You checked")
+						else: _announce("You called")
+				update_chip_labels()
+				pot_label.text = "Pot: %d" % pot
+				if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+				return
 			player_chips[player_idx] -= total_bet
 			pot += total_bet
 			player_bets[player_idx] += total_bet
@@ -865,7 +896,7 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 
 	match decision.action:
 		"raise":
-			var raise_amt = clampi(decision.amount, 1, 100 - player_bets[player_idx])
+			var raise_amt = clampi(decision.amount, 1, 130 - player_bets[player_idx])
 			raise_amt = mini(raise_amt, player_chips[player_idx])
 			var new_total = player_bets[player_idx] + raise_amt
 			if new_total > current_bet:
@@ -1216,7 +1247,7 @@ func showdown_phase():
 		player_chips[winner] += pot
 		$ChipManager.update_player_pile(winner, player_chips[winner])
 		$ChipManager.update_pot(0)
-		_announce("%s wins (everyone folded)!" % player_names[winner], 55)
+		_announce("%s wins (everyone folded)!" % player_names[winner], 45)
 		$SoundManager.play_win()
 		return
 	
@@ -1243,10 +1274,10 @@ func showdown_phase():
 	$ChipManager.update_pot(0)
 	
 	if best.player == 0:
-		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)], 55)
+		_announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)], 45)
 		$SoundManager.play_win()
 	else:
-		_announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)], 55)
+		_announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)], 45)
 		$SoundManager.play_win()
 	update_chip_labels()
 

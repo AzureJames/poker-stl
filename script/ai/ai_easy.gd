@@ -30,7 +30,11 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 		return {"action": "raise", "amount": call_amt + 1}
 	if strength > call_thresh:
 		return {"action": "call", "amount": call_amt}
-	if randf() < 0.02:
+	elif call_amt == 0:
+		return {"action": "call", "amount": 0}
+	elif strength < 0.12 and call_amt > 10:
+		return {"action": "fold", "amount": 0}
+	elif randf() < 0.35:
 		return {"action": "fold", "amount": 0}
 	else:
 		return {"action": "call", "amount": call_amt}

@@ -44,17 +44,17 @@ func _count_outs(hand: Array, community: Array) -> int:
 
 	var outs = 0
 	for r in rank_counts.keys():
-		if rank_counts[r] == 1:
-			var remaining = 4 - _seen_ranks.get(r, 0) - rank_counts[r]
-			outs += remaining
-		elif rank_counts[r] == 2:
+		if rank_counts[r] == 2:
 			var remaining = 4 - _seen_ranks.get(r, 0) - rank_counts[r]
 			outs += remaining * 2
 
+	var flush_draw = false
 	for s in suits.keys():
 		if suits[s] >= 3:
 			var remaining = 13 - _seen_suits.get(s, 0) - suits[s]
-			if remaining > 0: outs += remaining
+			if remaining > 0:
+				outs += remaining
+				flush_draw = true
 
 	return outs
 
@@ -127,6 +127,14 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 		amt = min(amt, 100 - player_bet)
 		if _current_player >= 0: _track_opponent(_current_player, "raise")
 		return {"action": "raise", "amount": amt}
+	elif call_amt > 0 and strength < 0.26 + pot_odds * 0.6 and implied < pot_odds * 1.5:
+		# Weak hand facing a meaningful bet — fold strategically
+		if randf() < 0.1 and call_amt < player_chips * 0.3:
+			# 10% spite call to keep opponents honest
+			if _current_player >= 0: _track_opponent(_current_player, "call")
+			return {"action": "call", "amount": call_amt}
+		if _current_player >= 0: _track_opponent(_current_player, "fold")
+		return {"action": "fold", "amount": 0}
 	elif effective > 0.05 - looseness * 0.08 or implied > pot_odds or (strength > 0.2 - looseness * 0.15 and pot_odds < 0.3):
 		if _current_player >= 0: _track_opponent(_current_player, "call")
 		return {"action": "call", "amount": call_amt}

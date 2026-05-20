@@ -772,9 +772,8 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	var slider_min = 5
 	var slider_max = 65
 	var cannot_meet_call = call_amount > slider_max
-	var pot_limit = pot >= 595
 	
-	raise_button.visible = can_raise and !cannot_meet_call and !pot_limit
+	raise_button.visible = can_raise and !cannot_meet_call
 	allin_button.visible = can_raise and !cannot_meet_call
 	bet_amt_label.visible = can_raise
 	bet_slider.visible = can_raise and !cannot_meet_call
@@ -814,40 +813,9 @@ func human_betting_turn(player_idx: int, turn_count: int):
 				_announce("You called")
 		"raise":
 			var raise_amount = int(bet_slider.value)
-			var max_allowed = 130 - player_bets[player_idx]
-			var total_bet = mini(raise_amount, max_allowed)
-			total_bet = mini(total_bet, player_chips[player_idx])
+			var total_bet = mini(raise_amount, player_chips[player_idx])
 			if raise_amount > player_chips[player_idx]:
 				_announce("Not enough chips to raise")
-				show_action_buttons(true)
-				action = await _wait_for_human_action()
-				show_action_buttons(false)
-				match action:
-					"fold":
-						player_folded[player_idx] = true
-						player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
-						update_hand_display(player_idx)
-						$SoundManager.play_card_shove()
-						$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
-						_announce("You folded")
-					"call":
-						var amt = call_amount
-						player_chips[player_idx] -= amt
-						pot += amt
-						player_bets[player_idx] += amt
-						player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
-						$SoundManager.play_chip_lay()
-						$ChipManager.add_pot_contribution(player_idx, amt)
-						$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
-						$ChipManager.update_pot(pot)
-						if amt == 0: _announce("You checked")
-						else: _announce("You called")
-				update_chip_labels()
-				pot_label.text = "Pot: %d" % pot
-				if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
-				return
-			if pot + total_bet > 595:
-				_announce("Pot limit reached")
 				show_action_buttons(true)
 				action = await _wait_for_human_action()
 				show_action_buttons(false)

@@ -782,7 +782,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	
 	if can_raise:
 		bet_slider.min_value = slider_min
-		bet_slider.max_value = slider_max
+		bet_slider.max_value = mini(slider_max, player_chips[player_idx])
 		bet_slider.value = slider_min
 		bet_value_label.text = str(slider_min)
 	
@@ -817,6 +817,35 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			var max_allowed = 130 - player_bets[player_idx]
 			var total_bet = mini(raise_amount, max_allowed)
 			total_bet = mini(total_bet, player_chips[player_idx])
+			if raise_amount > player_chips[player_idx]:
+				_announce("Not enough chips to raise")
+				show_action_buttons(true)
+				action = await _wait_for_human_action()
+				show_action_buttons(false)
+				match action:
+					"fold":
+						player_folded[player_idx] = true
+						player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+						update_hand_display(player_idx)
+						$SoundManager.play_card_shove()
+						$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+						_announce("You folded")
+					"call":
+						var amt = call_amount
+						player_chips[player_idx] -= amt
+						pot += amt
+						player_bets[player_idx] += amt
+						player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+						$SoundManager.play_chip_lay()
+						$ChipManager.add_pot_contribution(player_idx, amt)
+						$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+						$ChipManager.update_pot(pot)
+						if amt == 0: _announce("You checked")
+						else: _announce("You called")
+				update_chip_labels()
+				pot_label.text = "Pot: %d" % pot
+				if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+				return
 			if pot + total_bet > 595:
 				_announce("Pot limit reached")
 				show_action_buttons(true)
@@ -1326,15 +1355,26 @@ func round_end():
 			active += 1
 			last_player = i
 	
-	if active <= 1:
+	var player_bankrupt = player_chips[0] <= 0
+	
+	if active <= 1 and player_bankrupt:
 		end_label.text = "Game Over! %s wins!" % player_names[last_player]
 		end_label.visible = true
 		return
 	
-	var player_bankrupt = player_chips[0] <= 0
 	if player_bankrupt:
 		_announce("You lose!")
 		end_label.text = "You're out of chips! Press New Round to restart."
+		end_label.visible = true
+	
+	var all_cpus_bankrupt = true
+	for i in range(1, NUM_PLAYERS):
+		if player_chips[i] > 0:
+			all_cpus_bankrupt = false
+			break
+	if all_cpus_bankrupt:
+		_announce("Congratulations!")
+		end_label.text = "You eliminated all opponents! Press New Round to play again."
 		end_label.visible = true
 	
 	for i in range(NUM_PLAYERS):
@@ -1346,7 +1386,7 @@ func round_end():
 	if new_round_button.pressed.is_connected(_on_new_round_pressed):
 		new_round_button.pressed.disconnect(_on_new_round_pressed)
 	
-	if player_bankrupt:
+	if player_bankrupt or all_cpus_bankrupt:
 		_reset_game()
 	
 	play_round()

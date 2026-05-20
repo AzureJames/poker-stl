@@ -129,6 +129,7 @@ texture = ExtResource("5_b5f6u")
 
 [node name="Sprite2D2" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=488014764]
 position = Vector2(1212, 444)
+scale = Vector2(-1, 1)
 texture = ExtResource("6_tqoya")
 
 [node name="Sprite2D3" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=520594047]

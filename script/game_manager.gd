@@ -1,7 +1,7 @@
 extends Control
 
 const NUM_PLAYERS = 4
-const STARTING_CHIPS = 1000
+const STARTING_CHIPS = 21
 
 const ANTE_PERCENT = 0.05
 const MAX_BET = 65
@@ -228,7 +228,7 @@ func build_ui():
 	bet_value_label.size = Vector2(80, 40)
 	bet_value_label.add_theme_font_size_override("font_size", 20)
 	bet_value_label.add_theme_color_override("font_color", Color.BLACK)
-	bet_value_label.text = "0"
+	bet_value_label.text = "5"
 	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_value_label)
 
@@ -398,7 +398,7 @@ func build_ui():
 	stealtimer_label.position = Vector2(540, 340)
 	stealtimer_label.size = Vector2(200, 30)
 	stealtimer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(stealtimer_label)
+	#add_child(stealtimer_label)
 
 	var history_bg = NinePatchRect.new()
 	history_bg.texture = Globals.grey_bevel_normal
@@ -429,7 +429,7 @@ func build_ui():
 	poker_hands_image.z_index = 5
 	add_child(poker_hands_image)
 
-	poker_hands_toggle = make_button("Hands", Vector2(1470, 10))
+	poker_hands_toggle = make_button("Hand Ranking", Vector2(1470, 10))
 	poker_hands_toggle.pressed.connect(_toggle_poker_hands)
 	add_child(poker_hands_toggle)
 
@@ -570,6 +570,13 @@ func start_game():
 	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 	play_round()
 
+func _only_one_active() -> bool:
+	var count = 0
+	for i in range(NUM_PLAYERS):
+		if !player_folded[i]:
+			count += 1
+	return count <= 1
+
 func play_round():
 	for i in range(NUM_PLAYERS):
 		if player_ai[i]:
@@ -577,11 +584,27 @@ func play_round():
 	await clear_hands()
 	await deal_phase()
 	ante_phase()
+	if _only_one_active():
+		await showdown_phase()
+		await round_end()
+		return
 	await betting_round()
+	if _only_one_active():
+		await showdown_phase()
+		await round_end()
+		return
 	await flop_phase(1)
 	await betting_round()
+	if _only_one_active():
+		await showdown_phase()
+		await round_end()
+		return
 	await discard_phase()
 	await betting_round()
+	if _only_one_active():
+		await showdown_phase()
+		await round_end()
+		return
 	await steal_phase()
 	await flop_phase(2)
 	await showdown_phase()
@@ -1290,6 +1313,10 @@ func showdown_phase():
 		$ChipManager.update_player_pile(winner, player_chips[winner])
 		$ChipManager.update_pot(0)
 		_announce("%s wins (everyone folded)!" % player_names[winner], 45)
+		if player_names[winner] == "You":
+			_announce("%s win (everyone folded)!" % player_names[winner], 45)
+		else:
+			_announce("%s wins (everyone folded)!" % player_names[winner], 45)
 		$SoundManager.play_win()
 		return
 	
@@ -1336,9 +1363,7 @@ func round_end():
 	if active <= 1 and player_bankrupt:
 		end_label.text = "Game Over! %s wins!" % player_names[last_player]
 		end_label.visible = true
-		return
-	
-	if player_bankrupt:
+	elif player_bankrupt:
 		_announce("You lose!")
 		end_label.text = "You're out of chips! Press New Round to restart."
 		end_label.visible = true
@@ -1516,7 +1541,7 @@ func evaluate_5(cards: Array) -> Dictionary:
 func hand_result_name(result: Dictionary) -> String:
 	var name = Globals.HAND_NAME[result.type]
 	if !result.ranks.is_empty():
-		if result.type == Globals.HandType.PAIR:
+		if result.type == Globals.HandType.PAIR or result.type == Globals.HandType.THREE_OF_KIND or result.type == Globals.HandType.FOUR_OF_KIND:
 			name += " (%s)" % Globals.RANK_NAME.get(result.ranks[0], "?")
 		else:
 			name += " (%s)" % _rank_str(result.ranks)

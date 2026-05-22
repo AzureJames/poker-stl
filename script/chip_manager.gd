@@ -7,7 +7,7 @@ const CHIP_H = 54
 var _atlas: Texture2D
 
 const PILE_POS: Array[Vector2] = [
-	Vector2(510, 565),
+	Vector2(510, 665),
 	Vector2(240, 230),
 	Vector2(500, 130),
 	Vector2(1110, 230),
@@ -104,7 +104,7 @@ func update_pot(total_pot: int):
 			var chip_in_pile = chip_idx % 8
 			var pile_col = pile % 6
 			var pile_row = pile / 6
-			tr.position = Vector2(pile_col * 48, pile_row * 50 - chip_in_pile * 5)
+			tr.position = Vector2(pile_col * 51, pile_row * 50 - chip_in_pile * 5)
 			_pot_container.add_child(tr)
 			chip_idx += 1
 	while chip_idx < count:
@@ -114,7 +114,7 @@ func update_pot(total_pot: int):
 		var chip_in_pile = chip_idx % 8
 		var pile_col = pile % 6
 		var pile_row = pile / 6
-		tr.position = Vector2(pile_col * 48, pile_row * 50 - chip_in_pile * 5)
+		tr.position = Vector2(pile_col * 50, pile_row * 50 - chip_in_pile * 5)
 		_pot_container.add_child(tr)
 		chip_idx += 1
 

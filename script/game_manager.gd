@@ -2,6 +2,7 @@ extends Control
 
 const NUM_PLAYERS = 4
 const STARTING_CHIPS = 1000
+
 const ANTE_PERCENT = 0.05
 const MAX_BET = 65
 const STEAL_TIMER = 21.0
@@ -616,6 +617,13 @@ func clear_hand_display(player_idx: int):
 func ante_phase():
 	_announce("Ante phase...")
 	for i in range(NUM_PLAYERS):
+		if player_chips[i] < 20: 
+			player_folded[i] = true
+			player_panel[i].name_label.add_theme_color_override("font_color", Color.GRAY)
+			update_hand_display(i)
+			$SoundManager.play_card_shove()
+			$ChipManager.update_player_pile(i, player_chips[i])
+			_announce("%s folds" % player_names[i])
 		var ante = min(20, player_chips[i])
 		player_chips[i] -= ante
 		pot += ante

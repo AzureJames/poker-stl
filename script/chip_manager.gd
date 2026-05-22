@@ -86,7 +86,7 @@ func add_pot_contribution(player_idx: int, amount: int):
 
 func update_pot(total_pot: int):
 	_clear_pot()
-	var count = clampi(total_pot / 10, 2, 48)
+	var count = max(2, total_pot / 10)
 	var total_contrib = 0
 	for c in _pot_contributions:
 		total_contrib += c
@@ -100,17 +100,21 @@ func update_pot(total_pot: int):
 				break
 			var cr = _player_style(p_idx)
 			var tr = _make_chip(cr.x, cr.y)
-			var col = chip_idx / 8
-			var row = chip_idx % 8
-			tr.position = Vector2(col * 60, -row * 5)
+			var pile = chip_idx / 8
+			var chip_in_pile = chip_idx % 8
+			var pile_col = pile % 6
+			var pile_row = pile / 6
+			tr.position = Vector2(pile_col * 48, pile_row * 50 - chip_in_pile * 5)
 			_pot_container.add_child(tr)
 			chip_idx += 1
 	while chip_idx < count:
 		var cr = CR.DARK_TEAL
 		var tr = _make_chip(cr.x, cr.y)
-		var col = chip_idx / 8
-		var row = chip_idx % 8
-		tr.position = Vector2(col * 60, -row * 5)
+		var pile = chip_idx / 8
+		var chip_in_pile = chip_idx % 8
+		var pile_col = pile % 6
+		var pile_row = pile / 6
+		tr.position = Vector2(pile_col * 48, pile_row * 50 - chip_in_pile * 5)
 		_pot_container.add_child(tr)
 		chip_idx += 1
 

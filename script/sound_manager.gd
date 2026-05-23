@@ -5,6 +5,7 @@ const PLAYER_COUNT = 6
 var _players: Array[AudioStreamPlayer] = []
 
 var _card_slide: Array[AudioStream] = []
+var _card_flip: Array[AudioStream] = []
 var _card_place: Array[AudioStream] = []
 var _card_shove: Array[AudioStream] = []
 var _card_shuffle: Array[AudioStream] = []
@@ -34,6 +35,7 @@ func _load_group(base: String, count: int) -> Array[AudioStream]:
 
 func _load_sounds():
 	_card_slide = _load_group("res://asset/Audio/card-fan", 2)
+	_card_flip = _load_group("res://asset/Audio/card-slide", 8)
 	_card_place = _load_group("res://asset/Audio/card-place", 4)
 	_card_shove = _load_group("res://asset/Audio/card-shove", 4)
 	_card_shuffle = [load("res://asset/Audio/shuffleandbridge.wav")]
@@ -65,6 +67,9 @@ func play_win(vol_db: float = 0.0):
 
 func play_card_slide(vol_db: float = 0.0):
 	_play(_card_slide, vol_db)
+
+func play_card_flip(vol_db: float = 0.0):
+	_play(_card_flip, vol_db)
 
 func play_card_place(vol_db: float = 0.0):
 	_play(_card_place, vol_db)

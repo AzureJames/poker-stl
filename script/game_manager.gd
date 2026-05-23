@@ -188,19 +188,19 @@ func build_ui():
 	add_child(action_bar)
 
 	var btn_x = 0
-	fold_button = make_button("Fold", Vector2(btn_x, 0))
+	fold_button = make_button("Fold", Vector2(btn_x, 0), "Quit hand")
 	action_bar.add_child(fold_button)
 	btn_x += 130
 
-	checkcall_button = make_button("Check", Vector2(btn_x, 0))
+	checkcall_button = make_button("Check", Vector2(btn_x, 0), "Call: Match bet. Check: pass turn")
 	action_bar.add_child(checkcall_button)
 	btn_x += 130
 
-	raise_button = make_button("Raise", Vector2(btn_x, 0))
+	raise_button = make_button("Raise", Vector2(btn_x, 0), "Bet more")
 	action_bar.add_child(raise_button)
 	btn_x += 130
 
-	allin_button = make_button("All In", Vector2(btn_x, 0))
+	allin_button = make_button("All In", Vector2(btn_x, 0),"")
 	#action_bar.add_child(allin_button)
 
 	bet_amt_label = Label.new()
@@ -218,7 +218,7 @@ func build_ui():
 	bet_slider.min_value = 5
 	bet_slider.max_value = 50
 	bet_slider.step = 5
-	bet_slider.value = 5
+	bet_slider.value = 50
 	bet_slider.value_changed.connect(_on_bet_slider_changed)
 	_style_slider(bet_slider)
 	action_bar.add_child(bet_slider)
@@ -228,7 +228,7 @@ func build_ui():
 	bet_value_label.size = Vector2(80, 40)
 	bet_value_label.add_theme_font_size_override("font_size", 20)
 	bet_value_label.add_theme_color_override("font_color", Color.BLACK)
-	bet_value_label.text = "5"
+	bet_value_label.text = "50"
 	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_value_label)
 
@@ -262,7 +262,7 @@ func build_ui():
 	add_child(difficulty_label)
 	_on_difficulty_changed(0)
 
-	discard_button = make_button("Discard & Draw", Vector2(0, 40))
+	discard_button = make_button("Discard Selected", Vector2(0, 40), "Select cards first!")
 	discard_button.visible = false
 	action_bar.add_child(discard_button)
 
@@ -333,11 +333,11 @@ func build_ui():
 	end_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(end_label)
 
-	new_round_button = make_button("New Round", Vector2(130, 40))
+	new_round_button = make_button("New Round", Vector2(130, 40),"")
 	new_round_button.visible = false
 	action_bar.add_child(new_round_button)
 
-	deal_button = make_button("Deal", Vector2(260, 40))
+	deal_button = make_button("Deal", Vector2(260, 40),"")
 	deal_button.visible = false
 	action_bar.add_child(deal_button)
 
@@ -380,7 +380,7 @@ func build_ui():
 	overlay_hand.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay_container.add_child(overlay_hand)
 
-	steal_confirm_button = make_button("Confirm Steal", Vector2(0, 0))
+	steal_confirm_button = make_button("Confirm Steal", Vector2(0, 0),"")
 	steal_confirm_button.visible = false
 	overlay_container.add_child(steal_confirm_button)
 
@@ -429,7 +429,7 @@ func build_ui():
 	poker_hands_image.z_index = 5
 	add_child(poker_hands_image)
 
-	poker_hands_toggle = make_button("Hand Ranking", Vector2(1470, 10))
+	poker_hands_toggle = make_button("Hand Ranking", Vector2(1470, 10),"")
 	poker_hands_toggle.pressed.connect(_toggle_poker_hands)
 	add_child(poker_hands_toggle)
 
@@ -499,11 +499,12 @@ func _style_slider(slider: HSlider):
 		slider.add_theme_stylebox_override("slide", slide_sb)
 	)
 
-func make_button(text: String, pos: Vector2) -> Button:
+func make_button(text: String, pos: Vector2, txt: String) -> Button:
 	var btn = Button.new()
 	btn.text = text
 	btn.position = pos
 	btn.size = Vector2(110, 40)
+	if txt != "": btn.tooltip_text = txt
 
 	var normal_sb = StyleBoxTexture.new()
 	normal_sb.texture = Globals.grey_bevel_normal
@@ -841,8 +842,8 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	if can_raise:
 		bet_slider.min_value = slider_min
 		bet_slider.max_value = mini(slider_max, player_chips[player_idx])
-		bet_slider.value = slider_min
-		bet_value_label.text = str(slider_min)
+		bet_slider.value = bet_slider.max_value / 2.0
+		bet_value_label.text = str(int(bet_slider.value))
 	
 	var action = await _wait_for_human_action()
 	
@@ -1058,7 +1059,7 @@ func discard_phase():
 	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
 
 func human_discard(player_idx: int):
-	_announce("Click cards to discard, then press Discard & Draw")
+	_announce("Click your cards to replace them!")
 	
 	var hand = player_hands[player_idx]
 	var container = player_panel[player_idx].hand_container

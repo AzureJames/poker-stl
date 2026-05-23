@@ -55,7 +55,7 @@ func _make_chip(col: int, row: int) -> TextureRect:
 	return tr
 
 func _player_style(idx: int) -> Vector2i:
-	var styles = [CR.TEAL, CR.GREY, CR.GREEN, CR.BLUE]
+	var styles = [CR.GREY, CR.TEAL, CR.GREEN, CR.BLUE]
 	return styles[idx]
 
 func _build_pile(player_idx: int, chip_count: int):

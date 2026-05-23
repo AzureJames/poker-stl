@@ -1,26 +1,29 @@
 [gd_scene format=3 uid="uid://cuickpmvulfpe"]
 
-[ext_resource type="Script" path="res://scene/rules.gd" id="1_3qmv"]
+[ext_resource type="Script" uid="uid://c3m8jq5bu0io5" path="res://scene/rules.gd" id="1_3qmv"]
 [ext_resource type="FontFile" uid="uid://y7wadv3p321g" path="res://asset/fonts/VT323-Regular.ttf" id="2_brvt"]
 [ext_resource type="Texture2D" uid="uid://pw01ihcm8aot" path="res://asset/grey_bevel_normal.png" id="3_0ha6"]
 [ext_resource type="Texture2D" uid="uid://cb8hmjt821l3w" path="res://asset/Poker-Hands.png" id="4_hn23"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_btn"]
 
-[node name="Rules" type="Control"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oggkv"]
+
+[node name="Rules" type="Control" unique_id=1457951553]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1600.0
 offset_bottom = 800.0
 script = ExtResource("1_3qmv")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=770456869]
 layout_mode = 0
 offset_right = 1600.0
 offset_bottom = 800.0
-color = Color(0.48859984, 0.6736953, 0.24559814, 1)
+color = Color(0.31422675, 0.43944678, 0.14869595, 1)
+metadata/_edit_lock_ = true
 
-[node name="TitleShadow" type="RichTextLabel" parent="."]
+[node name="TitleShadow" type="RichTextLabel" parent="." unique_id=360216550]
 layout_mode = 0
 offset_left = 400.0
 offset_top = 32.0
@@ -29,9 +32,10 @@ offset_bottom = 92.0
 theme_override_colors/default_color = Color(0.45291597, 0.22542924, 0.07002995, 1)
 theme_override_fonts/normal_font = ExtResource("2_brvt")
 theme_override_font_sizes/normal_font_size = 48
+bbcode_enabled = true
 text = "[center]Rules[/center]"
 
-[node name="Title" type="RichTextLabel" parent="."]
+[node name="Title" type="RichTextLabel" parent="." unique_id=620148870]
 layout_mode = 0
 offset_left = 400.0
 offset_top = 30.0
@@ -40,98 +44,145 @@ offset_bottom = 90.0
 theme_override_colors/default_color = Color(1, 0.8682245, 0.7563993, 1)
 theme_override_fonts/normal_font = ExtResource("2_brvt")
 theme_override_font_sizes/normal_font_size = 48
+bbcode_enabled = true
 text = "[center]Rules[/center]"
 
-[node name="BackButton" type="Button" parent="."]
+[node name="BackButton" type="Button" parent="." unique_id=1544403793]
+z_index = 2
 layout_mode = 0
-offset_left = 1475.0
-offset_top = 15.0
-offset_right = 1575.0
-offset_bottom = 60.0
+offset_left = 27.0
+offset_top = 25.0
+offset_right = 127.0
+offset_bottom = 70.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_brvt")
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxEmpty_btn")
 text = "  Back  "
 
-[node name="NinePatchRect" type="NinePatchRect" parent="BackButton"]
+[node name="NinePatchRect" type="NinePatchRect" parent="BackButton" unique_id=2063725567]
 z_index = -1
 layout_mode = 0
-offset_right = 100.0
-offset_bottom = 45.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 101.0
+offset_bottom = 46.0
 texture = ExtResource("3_0ha6")
 patch_margin_left = 4
 patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1362977069]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 110.0
 offset_right = 1540.0
 offset_bottom = 780.0
-vertical_scroll_mode = 1
+theme_override_colors/scroll_hint_vertical_color = Color(0.8509804, 0, 0, 1)
+theme_override_styles/panel = SubResource("StyleBoxEmpty_oggkv")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer" unique_id=1444357240]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="Section1Heading" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+[node name="Section1Heading" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=1130391792]
+custom_minimum_size = Vector2(0, 33)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/default_color = Color(0.45291597, 0.22542924, 0.07002995, 1)
+theme_override_colors/default_color = Color(0.31169584, 0.14667004, 0.03564549, 1)
 theme_override_fonts/normal_font = ExtResource("2_brvt")
 theme_override_font_sizes/normal_font_size = 34
+bbcode_enabled = true
 text = "[b]How to Play[/b]"
 
-[node name="Section1Body" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+[node name="Section1Body" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=1814187331]
+custom_minimum_size = Vector2(0, 222)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/default_color = Color(0.95, 0.87, 0.75, 1)
 theme_override_font_sizes/normal_font_size = 22
+text = "Steal Poker is a unique variant of traditional poker. Each player is dealt 5 cards. After an ante and one community card, there is a pot-limit betting round. Players may discard and redraw 0-5 cards, followed by another betting round. Then comes the unique twist: everyone reveals their hand and steals one card from the player to their left. A final community card is dealt, leading to showdown."
 autowrap_mode = 2
-text = "Steal Poker is a 4-player variant of traditional poker. Each player is dealt 5 cards. After a 5% ante and one community card, there is a pot-limit betting round (10% of pot max). Players may discard and redraw 0-5 cards, followed by another betting round. Then comes the unique twist: everyone reveals their hand and steals one card from the player to their left. A final community card is dealt, leading to showdown."
 
-[node name="Section2Heading" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+[node name="Section1Heading2" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=45458632]
+custom_minimum_size = Vector2(0, 33)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/default_color = Color(0.45291597, 0.22542924, 0.07002995, 1)
+theme_override_colors/default_color = Color(0.30980393, 0.14509805, 0.03529412, 1)
 theme_override_fonts/normal_font = ExtResource("2_brvt")
 theme_override_font_sizes/normal_font_size = 34
+bbcode_enabled = true
+text = "[b]Phases[/b]"
+
+[node name="Section3Body2" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=119851935]
+custom_minimum_size = Vector2(0, 444)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/default_color = Color(0.95, 0.87, 0.75, 1)
+theme_override_font_sizes/normal_font_size = 22
+bbcode_enabled = true
+text = "-Cards are dealt 
+-Mandatory ante of 20 chips
+-Betting round (up to 65 chips per bet)
+-Flop phase: One community card is dealt to center of table
+-Betting round #2
+-Discard phase: discard and re-draw part of your hand one time
+-Betting round #3
+-Steal phase: Take one of the cards from the player on your left. The player on your right will take one of your cards at the same time though!
+-Flop phase #2: Another community card is dealt to center of table
+-Showdown! Reveal your hands.
+-Round end: Player with the best hand wins the pot."
+autowrap_mode = 2
+
+[node name="Section2Heading" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=1695385292]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/default_color = Color(0.30980393, 0.14509805, 0.03529412, 1)
+theme_override_fonts/normal_font = ExtResource("2_brvt")
+theme_override_font_sizes/normal_font_size = 34
+bbcode_enabled = true
 text = "[b]Hand Rankings[/b]"
 
-[node name="Section2Body" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+[node name="Section2Body" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=1080434874]
+custom_minimum_size = Vector2(0, 222)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/default_color = Color(0.95, 0.87, 0.75, 1)
 theme_override_font_sizes/normal_font_size = 22
+text = "Standard poker hand rankings apply. See the reference chart below for common hand types from highest to lowest, starting with straight flush and 4 of a kind."
 autowrap_mode = 2
-text = "Standard poker hand rankings apply. See the reference chart below for common hand types from highest to lowest."
 
-[node name="HandsTexture" type="TextureRect" parent="ScrollContainer/VBoxContainer"]
+[node name="HandsTexture" type="TextureRect" parent="ScrollContainer/VBoxContainer" unique_id=918094285]
+custom_minimum_size = Vector2(120, 888)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(1460, 400)
 texture = ExtResource("4_hn23")
-expand_mode = 0
+expand_mode = 2
 stretch_mode = 5
 
-[node name="Section3Heading" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+[node name="Section3Heading" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=648855923]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/default_color = Color(0.45291597, 0.22542924, 0.07002995, 1)
+theme_override_colors/default_color = Color(0.30980393, 0.14509805, 0.03529412, 1)
 theme_override_fonts/normal_font = ExtResource("2_brvt")
 theme_override_font_sizes/normal_font_size = 34
-text = "[b]The Steal[/b]"
+bbcode_enabled = true
+text = "[b]Strategy[/b]"
 
-[node name="Section3Body" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+[node name="Section3Body" type="RichTextLabel" parent="ScrollContainer/VBoxContainer" unique_id=1852767209]
+custom_minimum_size = Vector2(0, 333)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/default_color = Color(0.95, 0.87, 0.75, 1)
 theme_override_font_sizes/normal_font_size = 22
+bbcode_enabled = true
+text = "Hands: Remember, a pair or just a high card isn't likely to win. Don't bet everything on those. Also, straights can easily be stolen although you may get lucky and steal them back at the same time. Expect one of your pairs/three of a kind to be stolen towards the end of the round.
+
+Steal: It may be useful to ruin the other player's hand instead of benefitting your own if their cards don't help you much. Keep your mind open to changing your hand strategy during the steal."
 autowrap_mode = 2
-text = "After the second betting round, all players reveal their hands simultaneously. You have 15 seconds to choose one card to take from the player on your left. The stolen card becomes part of your hand. Choose wisely - what you take is as important as what you give away!"
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]

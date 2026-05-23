@@ -3,7 +3,7 @@ extends HBoxContainer
 
 func _on_button_pressed() -> void:
 	get_parent().get_parent().get_parent().call_deferred('start_game')
-	%Music.stream = load("res://asset/Audio/poker2.mp3")
+	%Music.stream = load("res://asset/Audio/poker3.mp3")
 	%Music.play()
 	get_parent().get_parent().visible = !get_parent().get_parent().visible
 

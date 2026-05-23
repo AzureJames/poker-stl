@@ -1,6 +1,8 @@
 class_name AIEasy
 extends AIBase
 
+var under_this_folds := .31
+
 func randomize_personality():
 	aggro = 0.2 + randf() * 0.2
 	looseness = 0.25 + randf() * 0.25
@@ -21,10 +23,11 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 	var call_thresh = 0.25 - looseness * 0.15
 
 	if can_raise and (strength > raise_thresh or (strength > semi_thresh and randf() > 0.5)):
-		var amt = min(max_bet, call_amt + 1)
-		amt = max(1, int(amt))
-		amt = min(amt, player_chips)
-		amt = min(amt, 100 - player_bet)
+		#var amt = min(max_bet, call_amt + 1)
+		#amt = max(1, int(amt))
+		#amt = min(amt, player_chips)
+		#amt = min(amt, 100 - player_bet)
+		var amt = mini( (randi()% 20 ) + 1, player_chips)
 		return {"action": "raise", "amount": amt}
 	if can_raise and strength < 0.3 and randf() > 1.0 - bluff:
 		return {"action": "raise", "amount": call_amt + 1}
@@ -32,9 +35,7 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 		return {"action": "call", "amount": call_amt}
 	elif call_amt == 0:
 		return {"action": "call", "amount": 0}
-	elif strength < 0.12 and call_amt > 10:
-		return {"action": "fold", "amount": 0}
-	elif randf() < 0.35:
+	elif randf() < under_this_folds:
 		return {"action": "fold", "amount": 0}
 	else:
 		return {"action": "call", "amount": call_amt}

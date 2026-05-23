@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://joc4crsppm7s" path="res://script/chip_manager.gd" id="6_4j5ol"]
 [ext_resource type="Texture2D" uid="uid://bbfv2dh8efp02" path="res://asset/card_games,cards,clubs,diamonds,games,hearts,leisure,playing_cards,spades,stamps,symbols,MC900150875.png" id="6_tqoya"]
 [ext_resource type="Texture2D" uid="uid://d06t85bnsc1oo" path="res://asset/ace_of_spades,aces,card_games,creatures,fantasy,games,households,leisure,luck,metaphors,playing_cards,recreation,MC900364276.png" id="7_k65ib"]
-[ext_resource type="AudioStream" uid="uid://bt4ot7fb2jv5r" path="res://asset/Audio/pokerIntroDecent2.mp3" id="10_tqoya"]
+[ext_resource type="AudioStream" uid="uid://bevfts8tuhmel" path="res://asset/Audio/pokerIntro3.mp3" id="10_tqoya"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
 
@@ -151,6 +151,7 @@ offset_bottom = 16.0
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=940615733]
 unique_name_in_owner = true
 stream = ExtResource("10_tqoya")
+volume_db = -7.583
 autoplay = true
 
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_pressed"]

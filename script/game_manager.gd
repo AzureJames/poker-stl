@@ -1,10 +1,10 @@
 extends Control
 
 const NUM_PLAYERS = 4
-const STARTING_CHIPS = 21
+const STARTING_CHIPS = 1000
 
 const ANTE_PERCENT = 0.05
-const MAX_BET = 65
+const MAX_BET = 100
 const STEAL_TIMER = 21.0
 const CARD_W = 88
 const CARD_H = 124
@@ -829,7 +829,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	checkcall_button.visible = true
 	
 	var slider_min = 5
-	var slider_max = 65
+	var slider_max = 100
 	var cannot_meet_call = call_amount > slider_max
 	
 	raise_button.visible = can_raise and !cannot_meet_call
@@ -1364,10 +1364,51 @@ func showdown_phase():
 		if compare_hands(results[i].result, best.result) == 0:
 			tied.append(results[i])
 	
-	var share = pot / tied.size()
-	for t in tied:
-		player_chips[t.player] += share
-		$ChipManager.update_player_pile(t.player, player_chips[t.player])
+	if tied.size() == 1:
+		var winner_idx = tied[0].player
+		var cap = player_bets[winner_idx] * active_players.size()
+		var winnings = min(pot, cap)
+		player_chips[winner_idx] += winnings
+		$ChipManager.update_player_pile(winner_idx, player_chips[winner_idx])
+		
+		var excess = pot - winnings
+		if excess > 0:
+			var other_players = []
+			for p in active_players:
+				if p != winner_idx:
+					other_players.append(p)
+			
+			var other_bets_total = 0
+			for p in other_players:
+				other_bets_total += player_bets[p]
+			
+			if other_bets_total > 0:
+				var distributed = 0
+				for i in range(other_players.size() - 1):
+					var p = other_players[i]
+					var refund = (excess * player_bets[p]) / other_bets_total
+					player_chips[p] += refund
+					$ChipManager.update_player_pile(p, player_chips[p])
+					distributed += refund
+				var last_p = other_players[other_players.size() - 1]
+				player_chips[last_p] += excess - distributed
+				$ChipManager.update_player_pile(last_p, player_chips[last_p])
+			else:
+				var equal_share = excess / other_players.size()
+				var distributed = 0
+				for i in range(other_players.size() - 1):
+					var p = other_players[i]
+					player_chips[p] += equal_share
+					$ChipManager.update_player_pile(p, player_chips[p])
+					distributed += equal_share
+				var last_p = other_players[other_players.size() - 1]
+				player_chips[last_p] += excess - distributed
+				$ChipManager.update_player_pile(last_p, player_chips[last_p])
+	else:
+		var share = pot / tied.size()
+		for t in tied:
+			player_chips[t.player] += share
+			$ChipManager.update_player_pile(t.player, player_chips[t.player])
 	$ChipManager.update_pot(0)
 	
 	if best.player == 0:
@@ -1569,8 +1610,15 @@ func evaluate_5(cards: Array) -> Dictionary:
 func hand_result_name(result: Dictionary) -> String:
 	var name = Globals.HAND_NAME[result.type]
 	if !result.ranks.is_empty():
-		if result.type == Globals.HandType.PAIR or result.type == Globals.HandType.THREE_OF_KIND or result.type == Globals.HandType.FOUR_OF_KIND:
+		if result.type == Globals.HandType.TWO_PAIR:
+			name += " (%s)" % Globals.RANK_NAME.get(result.ranks[0], "?")			
+			name += " (%s)" % Globals.RANK_NAME.get(result.ranks[1], "?")
+			return name
+		if result.type == Globals.HandType.PAIR or result.type == Globals.HandType.THREE_OF_KIND  or result.type == Globals.HandType.FOUR_OF_KIND:
 			name += " (%s)" % Globals.RANK_NAME.get(result.ranks[0], "?")
+			return name
+		if result.type == Globals.HandType.FLUSH:
+			return name
 		else:
 			name += " (%s)" % _rank_str(result.ranks)
 	return name

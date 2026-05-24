@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://joc4crsppm7s" path="res://script/chip_manager.gd" id="6_4j5ol"]
 [ext_resource type="Texture2D" uid="uid://bbfv2dh8efp02" path="res://asset/card_games,cards,clubs,diamonds,games,hearts,leisure,playing_cards,spades,stamps,symbols,MC900150875.png" id="6_tqoya"]
 [ext_resource type="Texture2D" uid="uid://d06t85bnsc1oo" path="res://asset/ace_of_spades,aces,card_games,creatures,fantasy,games,households,leisure,luck,metaphors,playing_cards,recreation,MC900364276.png" id="7_k65ib"]
+[ext_resource type="PackedScene" uid="uid://cuickpmvulfpe" path="res://scene/rules.tscn" id="8_k65ib"]
 [ext_resource type="AudioStream" uid="uid://bevfts8tuhmel" path="res://asset/Audio/pokerIntro3.mp3" id="10_tqoya"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
@@ -136,6 +137,10 @@ texture = ExtResource("6_tqoya")
 [node name="Sprite2D3" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=520594047]
 position = Vector2(1188, 234)
 texture = ExtResource("7_k65ib")
+
+[node name="Rules" parent="StartMenu" unique_id=1457951553 instance=ExtResource("8_k65ib")]
+unique_name_in_owner = true
+visible = false
 
 [node name="SoundManager" type="Node" parent="." unique_id=1441812669]
 script = ExtResource("5_qx8fy")

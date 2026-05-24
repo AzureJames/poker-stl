@@ -78,6 +78,10 @@ var poker_hands_toggle: Button
 func _ready():
 	randomize()
 	build_ui()
+	
+func _physics_process(delta: float) -> void:
+	if Input.is_action_just_pressed("ui_cancel"):
+		$StartMenu.visible = !$StartMenu.visible
 
 func _on_discard_pressed():
 	discard_button.visible = false
@@ -680,16 +684,24 @@ func deal_phase():
 		targets.append(panel.position + panel.size * 0.5)
 
 	var anim_cards = []
+#generate sprites before move to center
+	for i in range(NUM_PLAYERS):
+		var cnt := 0
+		while cnt < 5:
+			var tr = make_card_back_sprite()	
+			tr.position = Vector2(4000,4000)
+			add_child(tr)
+			anim_cards.append(tr)
+			cnt+=1
+
 
 	for round in range(5):
 		for i in range(NUM_PLAYERS):
 			var card_data = deck.pop_back()
 			player_hands[i].append(card_data)
 
-			var tr = make_card_back_sprite()
+			var tr = anim_cards[i]
 			tr.position = center_pos - Vector2(CARD_W * 0.5, CARD_H * 0.5)
-			add_child(tr)
-			anim_cards.append(tr)
 
 			var tween = create_tween()
 			tween.tween_property(tr, "position", targets[i] - Vector2(CARD_W * 0.5, CARD_H * 0.5), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -697,17 +709,15 @@ func deal_phase():
 			$SoundManager.play_card_flip()
 			await get_tree().create_timer(0.14).timeout
 
-
-
-	for tr in anim_cards:
-		remove_child(tr)
-		tr.queue_free()
-
 	for i in range(NUM_PLAYERS):
 		update_hand_display(i)
 
 	_announce("Cards dealt!")
 	if RELEASE_MODE: await get_tree().create_timer(0.3).timeout
+	
+	for tr in anim_cards:
+		remove_child(tr)
+		tr.queue_free()
 
 func update_hand_display(player_idx: int, face_up: bool = false):
 	var container = player_panel[player_idx].hand_container

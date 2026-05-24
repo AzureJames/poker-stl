@@ -45,6 +45,7 @@ var discard_selected: Array = []
 var steal_choice: int = -1
 
 var deck: Array = []
+var time_scale = 1.0
 
 var pot_label: Label
 var message_label: Label
@@ -572,7 +573,7 @@ func start_game():
 	update_chip_labels()
 	for i in range(NUM_PLAYERS):
 		$ChipManager.setup_player_pile(i, player_chips[i])
-	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
 	play_round()
 
 func _only_one_active() -> bool:
@@ -616,6 +617,7 @@ func play_round():
 	await round_end()
 
 func clear_hands():
+	time_scale = 1.0
 	_announce("New round...")
 	for i in range(NUM_PLAYERS):
 		player_hands[i] = []
@@ -633,7 +635,7 @@ func clear_hands():
 	for i in range(NUM_PLAYERS):
 		$ChipManager.setup_player_pile(i, player_chips[i])
 	$SoundManager.play_card_shuffle()
-	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
 
 func clear_hand_display(player_idx: int):
 	var container = player_panel[player_idx].hand_container
@@ -647,6 +649,7 @@ func ante_phase():
 	for i in range(NUM_PLAYERS):
 		if player_chips[i] < 20: 
 			player_folded[i] = true
+			if player_is_human[i]: time_scale = 0.5
 			player_panel[i].name_label.add_theme_color_override("font_color", Color.GRAY)
 			update_hand_display(i)
 			$SoundManager.play_card_shove()
@@ -663,7 +666,7 @@ func ante_phase():
 		$ChipManager.update_player_pile(i, player_chips[i])
 	$ChipManager.update_pot(pot)
 	$SoundManager.play_chips_stack()
-	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.8 * time_scale).timeout
 
 func build_deck():
 	deck = []
@@ -700,20 +703,20 @@ func deal_phase():
 			var card_data = deck.pop_back()
 			player_hands[i].append(card_data)
 
-			var tr = anim_cards[i]
+			var tr = anim_cards[round * NUM_PLAYERS + i]
 			tr.position = center_pos - Vector2(CARD_W * 0.5, CARD_H * 0.5)
 
 			var tween = create_tween()
 			tween.tween_property(tr, "position", targets[i] - Vector2(CARD_W * 0.5, CARD_H * 0.5), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 			$SoundManager.play_card_flip()
-			await get_tree().create_timer(0.14).timeout
+			await get_tree().create_timer(0.14 * time_scale).timeout
 
 	for i in range(NUM_PLAYERS):
 		update_hand_display(i)
 
 	_announce("Cards dealt!")
-	if RELEASE_MODE: await get_tree().create_timer(0.3).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.3 * time_scale).timeout
 	
 	for tr in anim_cards:
 		remove_child(tr)
@@ -753,7 +756,7 @@ func flop_phase(num_cards: int):
 	$SoundManager.play_card_place()
 	_announce("Flop: %s" % Globals.card_name(community_cards[idx].suit, community_cards[idx].rank) if community_cards.size() > 0 else "")
 	update_all_displays()
-	if RELEASE_MODE: await get_tree().create_timer(2.1).timeout
+	if RELEASE_MODE: await get_tree().create_timer(2.1 * time_scale).timeout
 
 func betting_round():
 	_announce("Betting round...")
@@ -816,7 +819,7 @@ func betting_round():
 	
 	pot_label.text = "Pot: %d" % pot
 	_announce("Betting round over")
-	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.8 * time_scale).timeout
 
 func human_betting_turn(player_idx: int, turn_count: int):
 	_announce("Your turn!")
@@ -867,6 +870,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 			$SoundManager.play_card_shove()
 			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 			_announce("You folded")
+			time_scale = 0.5
 		"call":
 			var amount = call_amount
 			player_chips[player_idx] -= amount
@@ -897,6 +901,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 						$SoundManager.play_card_shove()
 						$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
 						_announce("You folded")
+						time_scale = 0.5
 					"call":
 						var amt = call_amount
 						player_chips[player_idx] -= amt
@@ -911,7 +916,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 						else: _announce("You called")
 				update_chip_labels()
 				pot_label.text = "Pot: %d" % pot
-				if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+				if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
 				return
 			player_chips[player_idx] -= total_bet
 			pot += total_bet
@@ -927,7 +932,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
-	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
 
 func show_action_buttons(show: bool):
 	fold_button.visible = show
@@ -989,7 +994,7 @@ func _on_difficulty_changed(value: float):
 
 func cpu_betting_turn(player_idx: int, turn_count: int):
 	_announce_quiet("%s is thinking..." % player_names[player_idx])
-	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.8 * time_scale).timeout
 
 	player_ai[player_idx].set_current_player(player_idx)
 	var decision = player_ai[player_idx].get_betting_action(
@@ -1049,7 +1054,7 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
-	if RELEASE_MODE: await get_tree().create_timer(0.6).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.6 * time_scale).timeout
 
 func discard_phase():
 	_announce("Click on any cards you want to replace")
@@ -1066,7 +1071,7 @@ func discard_phase():
 			cpu_discard(i)
 	
 	_announce("Draw phase")
-	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
 
 func human_discard(player_idx: int):
 	_announce("Click your cards to replace them!")
@@ -1126,11 +1131,11 @@ func human_discard(player_idx: int):
 	update_hand_display(player_idx)
 	$SoundManager.play_card_slide()
 	_announce("Drew %d new cards" % num_discard)
-	if RELEASE_MODE: await get_tree().create_timer(1.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.9 * time_scale).timeout
 
 func cpu_discard(player_idx: int):
 	_announce("%s is discarding..." % player_names[player_idx])
-	if RELEASE_MODE: await get_tree().create_timer(0.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.8 * time_scale).timeout
 
 	var to_discard = player_ai[player_idx].get_discard_indices(player_hands[player_idx])
 
@@ -1154,7 +1159,7 @@ func cpu_discard(player_idx: int):
 		_announce("%s kept all cards" % player_names[player_idx])
 
 	update_hand_display(player_idx)
-	if RELEASE_MODE: await get_tree().create_timer(0.9).timeout
+	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
 
 func _find_steal_target(player_idx: int) -> int:
 	for offset in range(1, NUM_PLAYERS):
@@ -1170,7 +1175,7 @@ func steal_phase():
 	for i in range(NUM_PLAYERS):
 		update_hand_display(i, true)
 	
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(0.8 * time_scale).timeout
 	
 	var steal_decisions = [-1, -1, -1, -1]
 	var steal_targets = [-1, -1, -1, -1]
@@ -1217,10 +1222,10 @@ func steal_phase():
 		var card_name = Globals.card_name(info.suit, info.rank)
 		_announce("%s stole %s from %s!" % [player_names[info.stealer], card_name, player_names[info.target]])
 		if !player_is_human[info.stealer]:
-			await get_tree().create_timer(3.0).timeout
+			await get_tree().create_timer(3.0 * time_scale).timeout
 	
 	_announce("Steals complete!")
-	await get_tree().create_timer(0.8).timeout
+	await get_tree().create_timer(0.8 * time_scale).timeout
 
 func cpu_choose_steal(player_idx: int, target_idx: int) -> int:
 	return player_ai[player_idx].get_steal_choice(player_hands[player_idx], player_hands[target_idx])
@@ -1268,7 +1273,7 @@ func show_steal_ui(target_idx: int):
 		var remaining = STEAL_TIMER - elapsed
 		stealtimer_label.text = "Time: %d" % ceil(remaining)
 		overlay_timer.text = "Time: %d" % ceil(remaining)
-		await get_tree().create_timer(0.1).timeout
+		await get_tree().create_timer(0.1 * time_scale).timeout
 		elapsed += 0.1
 	
 	if steal_choice < 0:
@@ -1332,7 +1337,7 @@ func show_steal_ui(target_idx: int):
 
 func showdown_phase():
 	_announce("Showdown!")
-	if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
+	if RELEASE_MODE: await get_tree().create_timer(1.8 * time_scale).timeout
 
 	
 	for i in range(NUM_PLAYERS):
@@ -1365,7 +1370,7 @@ func showdown_phase():
 		var result = evaluate_best_hand(all_cards)
 		results.append({player = i, result = result})
 		_announce("%s: %s" % [player_names[i], hand_result_name(result)])
-		if RELEASE_MODE: await get_tree().create_timer(1.8).timeout
+		if RELEASE_MODE: await get_tree().create_timer(1.8 * time_scale).timeout
 	
 	results.sort_custom(func(a, b): return compare_hands(a.result, b.result) > 0)
 	

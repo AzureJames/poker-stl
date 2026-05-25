@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://bbfv2dh8efp02" path="res://asset/card_games,cards,clubs,diamonds,games,hearts,leisure,playing_cards,spades,stamps,symbols,MC900150875.png" id="6_tqoya"]
 [ext_resource type="Texture2D" uid="uid://d06t85bnsc1oo" path="res://asset/ace_of_spades,aces,card_games,creatures,fantasy,games,households,leisure,luck,metaphors,playing_cards,recreation,MC900364276.png" id="7_k65ib"]
 [ext_resource type="PackedScene" uid="uid://cuickpmvulfpe" path="res://scene/rules.tscn" id="8_k65ib"]
+[ext_resource type="PackedScene" uid="uid://c8337g16vgkg1" path="res://scene/settings.tscn" id="9_k65ib"]
 [ext_resource type="AudioStream" uid="uid://bevfts8tuhmel" path="res://asset/Audio/pokerIntro3.mp3" id="10_tqoya"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
@@ -56,9 +57,9 @@ text = "Steal Poker 2000"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="StartMenu/ColorRect" unique_id=187230359]
 layout_mode = 0
-offset_left = 732.0
+offset_left = 570.0
 offset_top = 421.0
-offset_right = 1081.0
+offset_right = 1070.0
 offset_bottom = 461.0
 theme_override_constants/separation = 20
 script = ExtResource("4_4j5ol")
@@ -125,8 +126,28 @@ patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
 
+[node name="Button4" type="Button" parent="StartMenu/ColorRect/HBoxContainer" unique_id=1152526341]
+z_index = 1
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_brvut")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxEmpty_p1hux")
+text = " Settings "
+
+[node name="NinePatchRect" type="NinePatchRect" parent="StartMenu/ColorRect/HBoxContainer/Button4" unique_id=1374375433]
+z_index = -1
+layout_mode = 0
+offset_right = 126.0
+offset_bottom = 43.0
+texture = ExtResource("4_0ha60")
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
 [node name="Sprite2D" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=1457418972]
-position = Vector2(606, 439)
+position = Vector2(471, 444)
 texture = ExtResource("5_b5f6u")
 
 [node name="Sprite2D2" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=488014764]
@@ -139,6 +160,10 @@ position = Vector2(1188, 234)
 texture = ExtResource("7_k65ib")
 
 [node name="Rules" parent="StartMenu" unique_id=1457951553 instance=ExtResource("8_k65ib")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Settings" parent="StartMenu" unique_id=1457951554 instance=ExtResource("9_k65ib")]
 unique_name_in_owner = true
 visible = false
 
@@ -162,3 +187,4 @@ autoplay = true
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button2" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_2_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button3" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_3_pressed"]
+[connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button4" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_4_pressed"]

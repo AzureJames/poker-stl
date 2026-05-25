@@ -17,6 +17,7 @@ const PLAYER_POSITIONS = [
 	Vector2(1150, 280)
 ]
 
+var discard_steal_rnds = [1]
 var player_names: Array = ["You", "CPU 1", "CPU 2", "CPU 3"]
 var player_chips: Array = []
 var player_hands: Array = []
@@ -237,35 +238,7 @@ func build_ui():
 	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_value_label)
 
-	var diff_label = Label.new()
-	diff_label.text = "CPU:"
-	diff_label.position = Vector2(20, 20)
-	diff_label.size = Vector2(40, 30)
-	diff_label.add_theme_font_size_override("font_size", 18)
-	diff_label.add_theme_color_override("font_color", Color.WHITE)
-	diff_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(diff_label)
-
-	difficulty_slider = HSlider.new()
-	difficulty_slider.position = Vector2(65, 20)
-	difficulty_slider.size = Vector2(130, 30)
-	difficulty_slider.min_value = 0
-	difficulty_slider.max_value = 2
-	difficulty_slider.step = 1
-	difficulty_slider.tick_count = 3
-	difficulty_slider.value = 0
-	difficulty_slider.value_changed.connect(_on_difficulty_changed)
-	_style_slider(difficulty_slider)
-	add_child(difficulty_slider)
-
-	difficulty_label = Label.new()
-	difficulty_label.position = Vector2(200, 20)
-	difficulty_label.size = Vector2(60, 30)
-	difficulty_label.add_theme_font_size_override("font_size", 18)
-	difficulty_label.add_theme_color_override("font_color", Color.WHITE)
-	difficulty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(difficulty_label)
-	_on_difficulty_changed(0)
+	call_deferred("_on_difficulty_changed", 0)
 
 	discard_button = make_button("Discard Selected", Vector2(0, 40), "Select cards first!")
 	discard_button.visible = false
@@ -587,6 +560,7 @@ func play_round():
 	for i in range(NUM_PLAYERS):
 		if player_ai[i]:
 			player_ai[i].new_round()
+	Globals.playing = true
 	await clear_hands()
 	await deal_phase()
 	ante_phase()
@@ -605,13 +579,16 @@ func play_round():
 		await showdown_phase()
 		await round_end()
 		return
-	await discard_phase()
-	await betting_round()
-	if _only_one_active():
-		await showdown_phase()
-		await round_end()
-		return
-	await steal_phase()
+		
+	for round in discard_steal_rnds:
+		await discard_phase()
+		await betting_round()
+		if _only_one_active():
+			await showdown_phase()
+			await round_end()
+			return
+		await steal_phase()
+	
 	await flop_phase(2)
 	await showdown_phase()
 	await round_end()
@@ -987,10 +964,11 @@ func _on_difficulty_changed(value: float):
 		var ai = scripts[idx].new()
 		ai.name = "AICPU%d" % i
 		ai.randomize_personality()
-		add_child(ai)
+		add_child.call_deferred(ai)
 		player_ai[i] = ai
 	var labels = ["Easy", "Medium", "Hard"]
-	difficulty_label.text = labels[idx]
+	if difficulty_label:
+		difficulty_label.text = labels[idx]
 
 func cpu_betting_turn(player_idx: int, turn_count: int):
 	_announce_quiet("%s is thinking..." % player_names[player_idx])

@@ -7,6 +7,8 @@ enum Suit {
 	SPADES = 3
 }
 
+var playing := false
+
 const SUIT_SYMBOL = {
 	Suit.CLUBS: "♣",
 	Suit.DIAMONDS: "♦",

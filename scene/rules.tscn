@@ -117,22 +117,33 @@ bbcode_enabled = true
 text = "[b]Phases[/b]"
 
 [node name="Section3Body2" type="RichTextLabel" parent="CanvasLayer/ScrollContainer/VBoxContainer" unique_id=119851935]
-custom_minimum_size = Vector2(0, 444)
+custom_minimum_size = Vector2(0, 900)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/default_color = Color(0.95, 0.87, 0.75, 1)
 theme_override_font_sizes/normal_font_size = 22
 bbcode_enabled = true
-text = "-Cards are dealt 
--Mandatory ante of 20 chips
--Betting round (up to 65 chips per bet)
+text = "-5 cards are dealt 
+
+-Ante: Mandatory bet of 20 chips
+
+-Betting round (up to 100 chips per bet). Check to pass your turn, fold to quit, 
+call to match everyone elses' bet, or raise to increase the bet.
+
 -Flop phase: One community card is dealt to center of table
+
 -Betting round #2
+
 -Discard phase: discard and re-draw part of your hand one time
+
 -Betting round #3
+
 -Steal phase: Take one of the cards from the player on your left. The player on your right will take one of your cards at the same time though!
+
 -Flop phase #2: Another community card is dealt to center of table
+
 -Showdown! Reveal your hands.
+
 -Round end: Player with the best hand wins the pot."
 autowrap_mode = 2
 

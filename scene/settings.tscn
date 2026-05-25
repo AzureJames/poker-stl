@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://c8337g16vgkg1"]
+
+[ext_resource type="Script" uid="uid://c8w3unm8jexfk" path="res://scene/settings.gd" id="1_3qmv"]
+
+[node name="Settings" type="Control" unique_id=1831244114]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1600.0
+offset_bottom = 800.0
+script = ExtResource("1_3qmv")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1354656646]
+layer = 6
+visible = false

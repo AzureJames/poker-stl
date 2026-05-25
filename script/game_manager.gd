@@ -47,6 +47,7 @@ var steal_choice: int = -1
 
 var deck: Array = []
 var time_scale = 1.0
+var sudden_death_round := 0
 
 var pot_label: Label
 var message_label: Label
@@ -92,6 +93,7 @@ func _on_new_round_pressed():
 	new_round_button.visible = false
 
 func _reset_game():
+	sudden_death_round = 0
 	player_chips = []
 	player_hands = []
 	player_folded = []
@@ -238,7 +240,8 @@ func build_ui():
 	bet_value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_bar.add_child(bet_value_label)
 
-	call_deferred("_on_difficulty_changed", 0)
+	#default difficulty
+	call_deferred("_on_difficulty_changed", 1)
 
 	discard_button = make_button("Discard Selected", Vector2(0, 40), "Select cards first!")
 	discard_button.visible = false
@@ -534,6 +537,7 @@ func set_card_sprite(tr: TextureRect, suit: int, rank: int):
 	tr.texture = Globals.make_card_texture(suit, rank)
 
 func start_game():
+	sudden_death_round = 0
 	player_chips = []
 	player_hands = []
 	player_folded = []
@@ -653,6 +657,9 @@ func build_deck():
 	deck.shuffle()
 
 func deal_phase():
+	if Globals.sudden_death:
+		_announce("SUDDEN DEATH!", 60)
+		if RELEASE_MODE: await get_tree().create_timer(1.5 * time_scale).timeout
 	_announce("Dealing...")
 	build_deck()
 
@@ -853,13 +860,22 @@ func human_betting_turn(player_idx: int, turn_count: int):
 	
 	match action:
 		"fold":
-			player_folded[player_idx] = true
-			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
-			update_hand_display(player_idx)
-			$SoundManager.play_card_shove()
-			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
-			_announce("You folded")
-			time_scale = 0.5
+			if Globals.sudden_death:
+				player_folded[player_idx] = true
+				player_chips[player_idx] = 0
+				player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+				update_hand_display(player_idx)
+				$SoundManager.play_card_shove()
+				$ChipManager.update_player_pile(player_idx, 0)
+				_announce("You're eliminated!", 45)
+			else:
+				player_folded[player_idx] = true
+				player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+				update_hand_display(player_idx)
+				$SoundManager.play_card_shove()
+				$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+				_announce("You folded")
+				time_scale = 0.5
 		"call":
 			var amount = call_amount
 			player_chips[player_idx] -= amount
@@ -1035,12 +1051,25 @@ func cpu_betting_turn(player_idx: int, turn_count: int):
 			if amount == 0: _announce("%s checks" % player_names[player_idx])
 			else: _announce("%s calls" % player_names[player_idx])
 		"fold":
-			player_folded[player_idx] = true
-			player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
-			update_hand_display(player_idx)
-			$SoundManager.play_card_shove()
-			$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
-			_announce("%s folds" % player_names[player_idx])
+			if Globals.sudden_death:
+				var call_amt = mini(max(0, current_bet - player_bets[player_idx]), player_chips[player_idx])
+				player_chips[player_idx] -= call_amt
+				pot += call_amt
+				player_bets[player_idx] += call_amt
+				player_panel[player_idx].bet_label.text = "Bet: %d" % player_bets[player_idx]
+				$SoundManager.play_chip_lay()
+				$ChipManager.add_pot_contribution(player_idx, call_amt)
+				$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+				$ChipManager.update_pot(pot)
+				if call_amt == 0: _announce("%s checks" % player_names[player_idx])
+				else: _announce("%s calls" % player_names[player_idx])
+			else:
+				player_folded[player_idx] = true
+				player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
+				update_hand_display(player_idx)
+				$SoundManager.play_card_shove()
+				$ChipManager.update_player_pile(player_idx, player_chips[player_idx])
+				_announce("%s folds" % player_names[player_idx])
 
 	update_chip_labels()
 	pot_label.text = "Pot: %d" % pot
@@ -1449,6 +1478,16 @@ func showdown_phase():
 		$SoundManager.play_win()
 	update_chip_labels()
 
+	if Globals.sudden_death and active_players.size() >= 2:
+		var worst = results[-1].player
+		player_chips[worst] = 0
+		$ChipManager.update_player_pile(worst, 0)
+		$SoundManager.play_card_shove()
+		sudden_death_round += 1
+		_announce("%s is eliminated!" % player_names[worst], 45)
+		update_chip_labels()
+		if RELEASE_MODE: await get_tree().create_timer(1.2 * time_scale).timeout
+
 func round_end():
 	var active = 0
 	var last_player = 0
@@ -1476,6 +1515,12 @@ func round_end():
 		_announce("Congratulations!")
 		end_label.text = "You eliminated all opponents! Press New Round to play again."
 		end_label.visible = true
+
+	if Globals.sudden_death and not player_bankrupt and not all_cpus_bankrupt and sudden_death_round >= 3:
+		_announce("Sudden Death Champion!", 60)
+		end_label.text = "You survived Sudden Death! Press New Round to play again."
+		end_label.visible = true
+		all_cpus_bankrupt = true
 	
 	for i in range(NUM_PLAYERS):
 		player_panel[i].bet_label.text = ""

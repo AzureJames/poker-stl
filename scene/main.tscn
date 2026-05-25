@@ -17,6 +17,8 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_p1hux"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3br32"]
+
 [node name="Game" type="Control" unique_id=68148616]
 layout_mode = 3
 anchors_preset = 0
@@ -57,9 +59,9 @@ text = "Steal Poker 2000"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="StartMenu/ColorRect" unique_id=187230359]
 layout_mode = 0
-offset_left = 570.0
+offset_left = 460.0
 offset_top = 421.0
-offset_right = 1070.0
+offset_right = 1180.0
 offset_bottom = 461.0
 theme_override_constants/separation = 20
 script = ExtResource("4_4j5ol")
@@ -146,12 +148,33 @@ patch_margin_top = 4
 patch_margin_right = 4
 patch_margin_bottom = 4
 
+[node name="Button5" type="Button" parent="StartMenu/ColorRect/HBoxContainer" unique_id=1152526342]
+z_index = 1
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_brvut")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3br32")
+text = "  Sdn Death  "
+
+[node name="NinePatchRect" type="NinePatchRect" parent="StartMenu/ColorRect/HBoxContainer/Button5" unique_id=1374375434]
+z_index = -1
+layout_mode = 0
+offset_left = 6.0
+offset_right = 160.0
+offset_bottom = 43.0
+texture = ExtResource("4_0ha60")
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
 [node name="Sprite2D" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=1457418972]
-position = Vector2(471, 444)
+position = Vector2(367, 444)
 texture = ExtResource("5_b5f6u")
 
 [node name="Sprite2D2" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=488014764]
-position = Vector2(1212, 444)
+position = Vector2(1250, 444)
 scale = Vector2(-1, 1)
 texture = ExtResource("6_tqoya")
 
@@ -188,3 +211,4 @@ autoplay = true
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button2" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_2_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button3" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_3_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button4" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_4_pressed"]
+[connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button5" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_5_pressed"]

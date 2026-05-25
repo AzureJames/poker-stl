@@ -2,6 +2,7 @@ extends HBoxContainer
 
 
 func _on_button_pressed() -> void:
+	Globals.sudden_death = false
 	if Globals.playing == false:
 		get_parent().get_parent().get_parent().call_deferred('start_game')
 		%Music.stream = load("res://asset/Audio/poker4.mp3")
@@ -20,3 +21,12 @@ func _on_button_2_pressed() -> void:
 
 func _on_button_4_pressed() -> void:
 	%Settings._show()
+
+func _on_button_5_pressed() -> void:
+	Globals.sudden_death = true
+	if Globals.playing == false:
+		get_parent().get_parent().get_parent().call_deferred('start_game')
+		%Music.stream = load("res://asset/Audio/poker4.mp3")
+		%Music.volume_db = 0.0
+		if Globals.music: %Music.play()
+	get_parent().get_parent().visible = !get_parent().get_parent().visible

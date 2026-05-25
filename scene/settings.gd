@@ -1,8 +1,7 @@
 extends Control
 
 var game: Node
-var difficulty_slider: HSlider
-var difficulty_label: Label
+var difficulty_btns: Array = []
 
 func _ready() -> void:
 	game = get_node("/root/Game")
@@ -112,11 +111,12 @@ func _build_discard_toggle() -> Control:
 	btn.add_theme_font_override("font", load("res://asset/fonts/VT323-Regular.ttf"))
 	btn.add_theme_font_size_override("font_size", 24)
 	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.toggled.connect(_on_discard_toggled)
+	btn.toggled.connect(_on_discard_toggled.bind(btn))
 	return btn
 
-func _on_discard_toggled(enabled: bool):
+func _on_discard_toggled(enabled: bool, btn: CheckButton):
 	game.discard_steal_rnds = [1, 2] if enabled else [1]
+	btn.text = "2 Rounds" if enabled else "1 Round"
 
 func _build_speed_buttons() -> Control:
 	var hbox = HBoxContainer.new()
@@ -128,6 +128,7 @@ func _build_speed_buttons() -> Control:
 	var bevel_pressed = load("res://asset/grey_bevel_pressed.png")
 	for s in speeds:
 		var btn = Button.new()
+		btn.z_index = 2
 		btn.text = "%.1fx" % s
 		btn.add_theme_color_override("font_color", Color(0, 0, 0, 1))
 		btn.add_theme_font_override("font", font)
@@ -170,8 +171,7 @@ func _build_music_toggle() -> Control:
 	return btn
 
 func _on_music_toggled(enabled: bool):
-	if has_node("/root/Game/Music"):
-		%Music.playing = enabled
+	Globals.music = enabled
 
 func _build_difficulty_row() -> Control:
 	var hbox = HBoxContainer.new()
@@ -187,74 +187,54 @@ func _build_difficulty_row() -> Control:
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	hbox.add_child(lbl)
 
-	difficulty_slider = HSlider.new()
-	difficulty_slider.z_index = 1
-	difficulty_slider.size = Vector2(200, 40)
-	difficulty_slider.min_value = 0
-	difficulty_slider.max_value = 2
-	difficulty_slider.step = 1
-	difficulty_slider.tick_count = 3
-	difficulty_slider.value = 0
-	difficulty_slider.value_changed.connect(_on_difficulty_changed)
-	_style_slider(difficulty_slider)
-	difficulty_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(difficulty_slider)
+	var btn_hbox = HBoxContainer.new()
+	btn_hbox.add_theme_constant_override("separation", 10)
+	btn_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var font = load("res://asset/fonts/VT323-Regular.ttf")
+	var bevel = load("res://asset/grey_bevel_normal.png")
+	var bevel_hover = load("res://asset/grey_bevel_hover.png")
+	var bevel_pressed = load("res://asset/grey_bevel_pressed.png")
+	var labels = ["Easy", "Medium", "Hard"]
+	for idx in 3:
+		var btn = Button.new()
+		btn.z_index = 3
+		btn.text = labels[idx]
+		btn.add_theme_color_override("font_color", Color(0, 0, 0, 1))
+		btn.add_theme_font_override("font", font)
+		btn.add_theme_font_size_override("font_size", 24)
+		var empty_sb = StyleBoxEmpty.new()
+		btn.add_theme_stylebox_override("normal", empty_sb)
+		btn.pressed.connect(_on_difficulty_changed.bind(idx))
+		btn_hbox.add_child(btn)
 
-	difficulty_label = Label.new()
-	difficulty_label.size = Vector2(100, 40)
-	difficulty_label.add_theme_font_size_override("font_size", 24)
-	difficulty_label.add_theme_color_override("font_color", Color.WHITE)
-	difficulty_label.add_theme_font_override("font", load("res://asset/fonts/VT323-Regular.ttf"))
-	difficulty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hbox.add_child(difficulty_label)
+		var bevel_npr = NinePatchRect.new()
+		bevel_npr.z_index = -1
+		bevel_npr.offset_right = 80
+		bevel_npr.offset_bottom = 40
+		bevel_npr.texture = bevel
+		bevel_npr.patch_margin_left = 4
+		bevel_npr.patch_margin_top = 4
+		bevel_npr.patch_margin_right = 4
+		bevel_npr.patch_margin_bottom = 4
+		btn.add_child(bevel_npr)
+
+		btn.mouse_entered.connect(func():
+			bevel_npr.texture = bevel_hover
+		)
+		btn.mouse_exited.connect(func():
+			bevel_npr.texture = bevel
+		)
+		difficulty_btns.append(btn)
+	hbox.add_child(btn_hbox)
 
 	return hbox
 
-func _on_difficulty_changed(value: float):
-	var idx = int(value)
-	var labels = ["Easy", "Medium", "Hard"]
-	difficulty_label.text = labels[idx]
+func _on_difficulty_changed(idx: int = 0):
+	for i in 3:
+		var bevel = difficulty_btns[i].get_child(0) as NinePatchRect
+		bevel.texture = load("res://asset/grey_bevel_pressed.png") if i == idx else load("res://asset/grey_bevel_normal.png")
 	if game and game.has_method("_on_difficulty_changed"):
-		game._on_difficulty_changed(value)
-
-func _style_slider(slider: HSlider):
-	var grey_bevel_normal = load("res://asset/grey_bevel_normal.png")
-	var grey_bevel_hover = load("res://asset/grey_bevel_hover.png")
-	var grey_bevel_pressed = load("res://asset/grey_bevel_pressed.png")
-
-	var slide_sb = StyleBoxTexture.new()
-	slide_sb.texture = grey_bevel_normal
-	slide_sb.texture_margin_left = 4
-	slide_sb.texture_margin_top = 4
-	slide_sb.texture_margin_right = 4
-	slide_sb.texture_margin_bottom = 4
-
-	var slide_hover = StyleBoxTexture.new()
-	slide_hover.texture = grey_bevel_hover
-	slide_hover.texture_margin_left = 4
-	slide_hover.texture_margin_top = 4
-	slide_hover.texture_margin_right = 4
-	slide_hover.texture_margin_bottom = 4
-
-	var fill_sb = StyleBoxTexture.new()
-	fill_sb.texture = grey_bevel_pressed
-	fill_sb.texture_margin_left = 4
-	fill_sb.texture_margin_top = 4
-	fill_sb.texture_margin_right = 4
-	fill_sb.texture_margin_bottom = 4
-
-	slider.add_theme_stylebox_override("slide", slide_sb)
-	slider.add_theme_stylebox_override("grabber_area", fill_sb)
-	slider.add_theme_icon_override("grabber", grey_bevel_normal)
-	slider.add_theme_icon_override("grabber_highlight", grey_bevel_hover)
-	slider.add_theme_constant_override("center_grabber", 0)
-
-	slider.mouse_entered.connect(func():
-		slider.add_theme_stylebox_override("slide", slide_hover)
-	)
-	slider.mouse_exited.connect(func():
-		slider.add_theme_stylebox_override("slide", slide_sb)
-	)
+		game._on_difficulty_changed(idx)
 
 func _show():
 	$CanvasLayer.visible = true

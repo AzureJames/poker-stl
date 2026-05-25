@@ -130,7 +130,7 @@ text = "-5 cards are dealt
 -Betting round (up to 100 chips per bet). Check to pass your turn, fold to quit, 
 call to match everyone elses' bet, or raise to increase the bet.
 
--Flop phase: One community card is dealt to center of table
+-Flop phase: One community card is dealt to center of table. Anyone can use this as part of their hand.
 
 -Betting round #2
 
@@ -142,7 +142,7 @@ call to match everyone elses' bet, or raise to increase the bet.
 
 -Flop phase #2: Another community card is dealt to center of table
 
--Showdown! Reveal your hands.
+-Showdown! Reveal your hands. Use 5 of your/community cards to make the best hand.
 
 -Round end: Player with the best hand wins the pot."
 autowrap_mode = 2

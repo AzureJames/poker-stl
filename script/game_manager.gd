@@ -664,16 +664,22 @@ func deal_phase():
 		targets.append(panel.position + panel.size * 0.5)
 
 	var anim_cards = []
-#generate sprites before move to center
-	for i in range(NUM_PLAYERS):
-		var cnt := 0
-		while cnt < 5:
-			var tr = make_card_back_sprite()	
-			tr.position = Vector2(4000,4000)
-			add_child(tr)
-			anim_cards.append(tr)
-			cnt+=1
+	for i in range(NUM_PLAYERS * 5):
+		var tr = make_card_back_sprite()
+		tr.position = Vector2(4000, 4000)
+		add_child(tr)
+		anim_cards.append(tr)
 
+	for i in range(NUM_PLAYERS):
+		var container = player_panel[i].hand_container
+		var nodes = []
+		for j in range(5):
+			var tr = make_card_back_sprite()
+			tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tr.modulate = Color(1, 1, 1, 0)
+			container.add_child(tr)
+			nodes.append(tr)
+		player_hand_nodes[i] = nodes
 
 	for round in range(5):
 		for i in range(NUM_PLAYERS):
@@ -690,11 +696,17 @@ func deal_phase():
 			await get_tree().create_timer(0.14 * time_scale).timeout
 
 	for i in range(NUM_PLAYERS):
-		update_hand_display(i)
+		var nodes = player_hand_nodes[i]
+		var hand = player_hands[i]
+		if player_is_human[i]:
+			for j in range(hand.size()):
+				set_card_sprite(nodes[j], hand[j].suit, hand[j].rank)
+		for node in nodes:
+			node.modulate = Color(1, 1, 1, 1)
 
 	_announce("Cards dealt!")
 	if RELEASE_MODE: await get_tree().create_timer(0.3 * time_scale).timeout
-	
+
 	for tr in anim_cards:
 		remove_child(tr)
 		tr.queue_free()
@@ -1049,7 +1061,28 @@ func discard_phase():
 			cpu_discard(i)
 	
 	_announce("Draw phase")
-	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
+	if RELEASE_MODE: await get_tree().create_timer(2.1 * time_scale).timeout
+
+func _animate_new_cards(player_idx: int, count: int):
+	if count <= 0:
+		return
+	var center_pos = Vector2(630, 260)
+	var panel = player_panel[player_idx].panel
+	var target = panel.position + panel.size * 0.5
+	var anim_cards = []
+	for i in range(count):
+		var tr = make_card_back_sprite()
+		tr.position = center_pos - Vector2(CARD_W * 0.5, CARD_H * 0.5)
+		add_child(tr)
+		anim_cards.append(tr)
+		var tween = create_tween()
+		tween.tween_property(tr, "position", target - Vector2(CARD_W * 0.5, CARD_H * 0.5), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		$SoundManager.play_card_flip()
+		await get_tree().create_timer(0.14 * time_scale).timeout
+	await get_tree().create_timer(0.4 * time_scale).timeout
+	for tr in anim_cards:
+		remove_child(tr)
+		tr.queue_free()
 
 func human_discard(player_idx: int):
 	_announce("Click your cards to replace them!")
@@ -1106,6 +1139,7 @@ func human_discard(player_idx: int):
 		if deck.size() > 0:
 			player_hands[player_idx].append(deck.pop_back())
 	
+	await _animate_new_cards(player_idx, num_discard)
 	update_hand_display(player_idx)
 	$SoundManager.play_card_slide()
 	_announce("Drew %d new cards" % num_discard)
@@ -1132,11 +1166,13 @@ func cpu_discard(player_idx: int):
 			if deck.size() > 0:
 				player_hands[player_idx].append(deck.pop_back())
 
+		await _animate_new_cards(player_idx, actual_discard)
+		update_hand_display(player_idx)
 		_announce("%s drew %d cards" % [player_names[player_idx], actual_discard])
 	else:
+		update_hand_display(player_idx)
 		_announce("%s kept all cards" % player_names[player_idx])
 
-	update_hand_display(player_idx)
 	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
 
 func _find_steal_target(player_idx: int) -> int:

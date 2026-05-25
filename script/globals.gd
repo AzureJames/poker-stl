@@ -8,6 +8,7 @@ enum Suit {
 }
 
 var playing := false
+var music := true
 
 const SUIT_SYMBOL = {
 	Suit.CLUBS: "♣",

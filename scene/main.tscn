@@ -8,10 +8,10 @@
 [ext_resource type="Script" uid="uid://bpeul321albt" path="res://script/sound_manager.gd" id="5_qx8fy"]
 [ext_resource type="Script" uid="uid://joc4crsppm7s" path="res://script/chip_manager.gd" id="6_4j5ol"]
 [ext_resource type="Texture2D" uid="uid://bbfv2dh8efp02" path="res://asset/card_games,cards,clubs,diamonds,games,hearts,leisure,playing_cards,spades,stamps,symbols,MC900150875.png" id="6_tqoya"]
-[ext_resource type="Texture2D" uid="uid://d06t85bnsc1oo" path="res://asset/ace_of_spades,aces,card_games,creatures,fantasy,games,households,leisure,luck,metaphors,playing_cards,recreation,MC900364276.png" id="7_k65ib"]
 [ext_resource type="PackedScene" uid="uid://cuickpmvulfpe" path="res://scene/rules.tscn" id="8_k65ib"]
 [ext_resource type="PackedScene" uid="uid://c8337g16vgkg1" path="res://scene/settings.tscn" id="9_k65ib"]
 [ext_resource type="AudioStream" uid="uid://bevfts8tuhmel" path="res://asset/Audio/pokerIntro3.mp3" id="10_tqoya"]
+[ext_resource type="SpriteFrames" uid="uid://cfir1ikio8x7a" path="res://asset/dealer_sprite_frames.tres" id="13_mswub"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
 
@@ -39,22 +39,24 @@ color = Color(0.48859984, 0.6736953, 0.24559814, 1)
 
 [node name="RichTextLabel" type="RichTextLabel" parent="StartMenu/ColorRect" unique_id=1980501796]
 layout_mode = 0
-offset_left = 653.0
-offset_top = 180.0
-offset_right = 1228.0
-offset_bottom = 344.0
+offset_left = 581.0
+offset_top = 247.0
+offset_right = 1156.0
+offset_bottom = 411.0
 theme_override_colors/default_color = Color(0.45291597, 0.22542924, 0.07002995, 1)
-theme_override_font_sizes/normal_font_size = 55
+theme_override_fonts/normal_font = ExtResource("3_brvut")
+theme_override_font_sizes/normal_font_size = 58
 text = "Steal Poker 2000"
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="StartMenu/ColorRect" unique_id=2136047796]
 layout_mode = 0
-offset_left = 651.0
-offset_top = 178.0
-offset_right = 1226.0
-offset_bottom = 342.0
+offset_left = 583.0
+offset_top = 251.0
+offset_right = 1158.0
+offset_bottom = 415.0
 theme_override_colors/default_color = Color(1, 0.8682245, 0.7563993, 1)
-theme_override_font_sizes/normal_font_size = 55
+theme_override_fonts/normal_font = ExtResource("3_brvut")
+theme_override_font_sizes/normal_font_size = 58
 text = "Steal Poker 2000"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="StartMenu/ColorRect" unique_id=187230359]
@@ -178,9 +180,12 @@ position = Vector2(1250, 444)
 scale = Vector2(-1, 1)
 texture = ExtResource("6_tqoya")
 
-[node name="Sprite2D3" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=520594047]
-position = Vector2(1188, 234)
-texture = ExtResource("7_k65ib")
+[node name="MenuDealer" type="AnimatedSprite2D" parent="StartMenu/ColorRect" unique_id=1747897598]
+z_index = 2
+position = Vector2(567, 246)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("13_mswub")
+autoplay = "default"
 
 [node name="Rules" parent="StartMenu" unique_id=1457951553 instance=ExtResource("8_k65ib")]
 unique_name_in_owner = true
@@ -206,6 +211,14 @@ unique_name_in_owner = true
 stream = ExtResource("10_tqoya")
 volume_db = -7.583
 autoplay = true
+
+[node name="Dealer" type="AnimatedSprite2D" parent="." unique_id=1243710057]
+unique_name_in_owner = true
+z_index = 2
+position = Vector2(567, 217)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("13_mswub")
+autoplay = "default"
 
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button2" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_2_pressed"]

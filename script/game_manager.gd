@@ -5,7 +5,7 @@ const STARTING_CHIPS = 1000
 
 const ANTE_PERCENT = 0.05
 const MAX_BET = 100
-const STEAL_TIMER = 21.0
+const STEAL_TIMER = 22.0
 const CARD_W = 88
 const CARD_H = 124
 const RELEASE_MODE := true
@@ -85,6 +85,7 @@ func _ready():
 func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
 		$StartMenu.visible = !$StartMenu.visible
+		#%Dealer.visible = false
 
 func _on_discard_pressed():
 	discard_button.visible = false
@@ -118,7 +119,7 @@ func build_ui():
 	self.theme = theme
 
 	var bg = ColorRect.new()
-	bg.color = Color("1a5c1a")
+	bg.color = Color("482c1c")
 	bg.size = get_viewport_rect().size
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
@@ -126,7 +127,7 @@ func build_ui():
 	var viewport = get_viewport_rect().size
 	var table = TextureRect.new()
 	table.texture = load("res://asset/felt_green.jpg")
-	table.stretch_mode = TextureRect.STRETCH_TILE
+	table.stretch_mode = TextureRect.STRETCH_SCALE
 	table.size = Vector2(3500,1000)
 	table.position = Vector2(200,100)
 	table.scale = Vector2(.33,.33)
@@ -310,6 +311,7 @@ func build_ui():
 	end_label.add_theme_color_override("font_color", Color.GOLD)
 	end_label.position = Vector2(300, 200)
 	end_label.size = Vector2(680, 200)
+	end_label.z_index = 10
 	end_label.visible = false
 	end_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(end_label)
@@ -520,18 +522,18 @@ func make_button(text: String, pos: Vector2, txt: String) -> Button:
 	return btn
 
 func make_card_sprite() -> TextureRect:
-	var tr = TextureRect.new()
-	tr.size = Vector2(CARD_W, CARD_H)
-	tr.custom_minimum_size = Vector2(CARD_W, CARD_H)
-	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	tr.stretch_mode = TextureRect.STRETCH_SCALE
-	tr.mouse_filter = Control.MOUSE_FILTER_STOP
-	return tr
+	var trt = TextureRect.new()
+	trt.size = Vector2(CARD_W, CARD_H)
+	trt.custom_minimum_size = Vector2(CARD_W, CARD_H)
+	trt.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	trt.stretch_mode = TextureRect.STRETCH_SCALE
+	trt.mouse_filter = Control.MOUSE_FILTER_STOP
+	return trt
 
 func make_card_back_sprite() -> TextureRect:
-	var tr = make_card_sprite()
-	tr.texture = Globals.make_card_back_texture()
-	return tr
+	var trs = make_card_sprite()
+	trs.texture = Globals.make_card_back_texture()
+	return trs
 
 func set_card_sprite(tr: TextureRect, suit: int, rank: int):
 	tr.texture = Globals.make_card_texture(suit, rank)
@@ -617,6 +619,7 @@ func clear_hands():
 		$ChipManager.setup_player_pile(i, player_chips[i])
 	$SoundManager.play_card_shuffle()
 	if RELEASE_MODE: await get_tree().create_timer(0.9 * time_scale).timeout
+	%Dealer.visible = true
 
 func clear_hand_display(player_idx: int):
 	var container = player_panel[player_idx].hand_container
@@ -681,11 +684,11 @@ func deal_phase():
 		var container = player_panel[i].hand_container
 		var nodes = []
 		for j in range(5):
-			var tr = make_card_back_sprite()
-			tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			tr.modulate = Color(1, 1, 1, 0)
-			container.add_child(tr)
-			nodes.append(tr)
+			var trb = make_card_back_sprite()
+			trb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			trb.modulate = Color(1, 1, 1, 0)
+			container.add_child(trb)
+			nodes.append(trb)
 		player_hand_nodes[i] = nodes
 
 	for round in range(5):
@@ -693,11 +696,11 @@ func deal_phase():
 			var card_data = deck.pop_back()
 			player_hands[i].append(card_data)
 
-			var tr = anim_cards[round * NUM_PLAYERS + i]
-			tr.position = center_pos - Vector2(CARD_W * 0.5, CARD_H * 0.5)
+			var tra = anim_cards[round * NUM_PLAYERS + i]
+			tra.position = center_pos - Vector2(CARD_W * 0.5, CARD_H * 0.5)
 
 			var tween = create_tween()
-			tween.tween_property(tr, "position", targets[i] - Vector2(CARD_W * 0.5, CARD_H * 0.5), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tween.tween_property(tra, "position", targets[i] - Vector2(CARD_W * 0.5, CARD_H * 0.5), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 			$SoundManager.play_card_flip()
 			await get_tree().create_timer(0.14 * time_scale).timeout
@@ -714,9 +717,9 @@ func deal_phase():
 	_announce("Cards dealt!")
 	if RELEASE_MODE: await get_tree().create_timer(0.3 * time_scale).timeout
 
-	for tr in anim_cards:
-		remove_child(tr)
-		tr.queue_free()
+	for card in anim_cards:
+		remove_child(card)
+		card.queue_free()
 
 func update_hand_display(player_idx: int, face_up: bool = false):
 	var container = player_panel[player_idx].hand_container
@@ -1316,7 +1319,7 @@ func show_steal_ui(target_idx: int):
 		var remaining = STEAL_TIMER - elapsed
 		stealtimer_label.text = "Time: %d" % ceil(remaining)
 		overlay_timer.text = "Time: %d" % ceil(remaining)
-		await get_tree().create_timer(0.1 * time_scale).timeout
+		await get_tree().create_timer(0.1).timeout
 		elapsed += 0.1
 	
 	if steal_choice < 0:

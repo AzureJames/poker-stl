@@ -66,9 +66,9 @@ func _build_pile(player_idx: int, chip_count: int):
 	var cr = _player_style(player_idx)
 	var n = clampi(chip_count / 100 + 1, 2, 17)
 	for i in range(n):
-		var tr = _make_chip(cr.x, cr.y)
-		tr.position = Vector2(0, -i * 5)
-		pile.add_child(tr)
+		var trc = _make_chip(cr.x, cr.y)
+		trc.position = Vector2(0, -i * 5)
+		pile.add_child(trc)
 
 func _clear_pot():
 	for c in _pot_container.get_children():
@@ -99,23 +99,23 @@ func update_pot(total_pot: int):
 			if chip_idx >= count:
 				break
 			var cr = _player_style(p_idx)
-			var tr = _make_chip(cr.x, cr.y)
+			var trpot = _make_chip(cr.x, cr.y)
 			var pile = chip_idx / 8
 			var chip_in_pile = chip_idx % 8
 			var pile_col = pile % 6
 			var pile_row = pile / 6
-			tr.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * 5)
-			_pot_container.add_child(tr)
+			trpot.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * 5)
+			_pot_container.add_child(trpot)
 			chip_idx += 1
 	while chip_idx < count:
 		var cr = CR.DARK_TEAL
-		var tr = _make_chip(cr.x, cr.y)
+		var trp = _make_chip(cr.x, cr.y)
 		var pile = chip_idx / 8
 		var chip_in_pile = chip_idx % 8
 		var pile_col = pile % 6
 		var pile_row = pile / 6
-		tr.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * 5)
-		_pot_container.add_child(tr)
+		trp.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * 5)
+		_pot_container.add_child(trp)
 		chip_idx += 1
 
 func clear_all():

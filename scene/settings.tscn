@@ -5,7 +5,7 @@
 [node name="Settings" type="Control" unique_id=1831244114]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 1600.0
+offset_right = 1120.0
 offset_bottom = 800.0
 script = ExtResource("1_3qmv")
 

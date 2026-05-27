@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://cuickpmvulfpe" path="res://scene/rules.tscn" id="8_k65ib"]
 [ext_resource type="PackedScene" uid="uid://c8337g16vgkg1" path="res://scene/settings.tscn" id="9_k65ib"]
 [ext_resource type="AudioStream" uid="uid://bevfts8tuhmel" path="res://asset/Audio/pokerIntro3.mp3" id="10_tqoya"]
+[ext_resource type="Script" uid="uid://cpiqd7vf7188y" path="res://script/ui_manager.gd" id="12_mswub"]
 [ext_resource type="SpriteFrames" uid="uid://cfir1ikio8x7a" path="res://asset/dealer_sprite_frames.tres" id="13_mswub"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
@@ -22,7 +23,7 @@
 [node name="Game" type="Control" unique_id=68148616]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 1600.0
+offset_right = 1120.0
 offset_bottom = 800.0
 script = ExtResource("1_3mqyv")
 
@@ -31,17 +32,17 @@ layer = 2
 
 [node name="ColorRect" type="ColorRect" parent="StartMenu" unique_id=13299685]
 z_index = -2
-offset_left = -109.0
+offset_left = -76.0
 offset_top = -51.0
-offset_right = 1817.0
+offset_right = 1272.0
 offset_bottom = 939.0
 color = Color(0.48859984, 0.6736953, 0.24559814, 1)
 
 [node name="RichTextLabel" type="RichTextLabel" parent="StartMenu/ColorRect" unique_id=1980501796]
 layout_mode = 0
-offset_left = 581.0
+offset_left = 407.0
 offset_top = 247.0
-offset_right = 1156.0
+offset_right = 809.0
 offset_bottom = 411.0
 theme_override_colors/default_color = Color(0.45291597, 0.22542924, 0.07002995, 1)
 theme_override_fonts/normal_font = ExtResource("3_brvut")
@@ -50,9 +51,9 @@ text = "Steal Poker 2000"
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="StartMenu/ColorRect" unique_id=2136047796]
 layout_mode = 0
-offset_left = 583.0
+offset_left = 408.0
 offset_top = 251.0
-offset_right = 1158.0
+offset_right = 811.0
 offset_bottom = 415.0
 theme_override_colors/default_color = Color(1, 0.8682245, 0.7563993, 1)
 theme_override_fonts/normal_font = ExtResource("3_brvut")
@@ -61,9 +62,9 @@ text = "Steal Poker 2000"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="StartMenu/ColorRect" unique_id=187230359]
 layout_mode = 0
-offset_left = 460.0
+offset_left = 322.0
 offset_top = 421.0
-offset_right = 1180.0
+offset_right = 826.0
 offset_bottom = 461.0
 theme_override_constants/separation = 20
 script = ExtResource("4_4j5ol")
@@ -172,17 +173,17 @@ patch_margin_right = 4
 patch_margin_bottom = 4
 
 [node name="Sprite2D" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=1457418972]
-position = Vector2(367, 444)
+position = Vector2(231, 444)
 texture = ExtResource("5_b5f6u")
 
 [node name="Sprite2D2" type="Sprite2D" parent="StartMenu/ColorRect" unique_id=488014764]
-position = Vector2(1250, 444)
+position = Vector2(1120, 444)
 scale = Vector2(-1, 1)
 texture = ExtResource("6_tqoya")
 
 [node name="MenuDealer" type="AnimatedSprite2D" parent="StartMenu/ColorRect" unique_id=1747897598]
 z_index = 2
-position = Vector2(567, 246)
+position = Vector2(397, 246)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("13_mswub")
 autoplay = "default"
@@ -201,6 +202,9 @@ script = ExtResource("5_qx8fy")
 [node name="ChipManager" type="Node" parent="." unique_id=1134768523]
 script = ExtResource("6_4j5ol")
 
+[node name="UIManager" type="Node" parent="." unique_id=1303202039]
+script = ExtResource("12_mswub")
+
 [node name="HSlider" type="HSlider" parent="." unique_id=1292230791]
 layout_mode = 0
 offset_right = 8.0
@@ -215,7 +219,7 @@ autoplay = true
 [node name="Dealer" type="AnimatedSprite2D" parent="." unique_id=1243710057]
 unique_name_in_owner = true
 z_index = 2
-position = Vector2(567, 217)
+position = Vector2(397, 217)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("13_mswub")
 autoplay = "default"

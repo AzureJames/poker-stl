@@ -13,7 +13,7 @@
 z_index = 1
 layout_mode = 3
 anchors_preset = 0
-offset_right = 1600.0
+offset_right = 1120.0
 offset_bottom = 800.0
 script = ExtResource("1_3qmv")
 
@@ -22,15 +22,16 @@ layer = 6
 visible = false
 
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer" unique_id=770456869]
-offset_right = 1600.0
+custom_minimum_size = Vector2(1400, 0)
+offset_right = 1120.0
 offset_bottom = 800.0
 color = Color(0.31422675, 0.43944678, 0.14869595, 1)
 metadata/_edit_lock_ = true
 
 [node name="TitleShadow" type="RichTextLabel" parent="CanvasLayer" unique_id=360216550]
-offset_left = 400.0
+offset_left = 280.0
 offset_top = 32.0
-offset_right = 1200.0
+offset_right = 840.0
 offset_bottom = 92.0
 theme_override_colors/default_color = Color(0.45291597, 0.22542924, 0.07002995, 1)
 theme_override_fonts/normal_font = ExtResource("2_brvt")
@@ -39,9 +40,9 @@ bbcode_enabled = true
 text = "[center]Rules[/center]"
 
 [node name="Title" type="RichTextLabel" parent="CanvasLayer" unique_id=620148870]
-offset_left = 400.0
+offset_left = 280.0
 offset_top = 30.0
-offset_right = 1200.0
+offset_right = 840.0
 offset_bottom = 90.0
 theme_override_colors/default_color = Color(1, 0.8682245, 0.7563993, 1)
 theme_override_fonts/normal_font = ExtResource("2_brvt")
@@ -51,9 +52,9 @@ text = "[center]Rules[/center]"
 
 [node name="BackButton" type="Button" parent="CanvasLayer" unique_id=1544403793]
 z_index = 2
-offset_left = 27.0
+offset_left = 19.0
 offset_top = 25.0
-offset_right = 127.0
+offset_right = 89.0
 offset_bottom = 70.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_brvt")
@@ -75,9 +76,9 @@ patch_margin_right = 4
 patch_margin_bottom = 4
 
 [node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer" unique_id=1362977069]
-offset_left = 60.0
+offset_left = 137.0
 offset_top = 110.0
-offset_right = 1540.0
+offset_right = 1173.0
 offset_bottom = 780.0
 theme_override_colors/scroll_hint_vertical_color = Color(0.8509804, 0, 0, 1)
 theme_override_styles/panel = SubResource("StyleBoxEmpty_oggkv")

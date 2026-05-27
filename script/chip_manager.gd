@@ -7,13 +7,13 @@ const CHIP_H = 54
 var _atlas: Texture2D
 
 const PILE_POS: Array[Vector2] = [
-	Vector2(510, 665),
-	Vector2(240, 230),
-	Vector2(500, 130),
-	Vector2(1110, 230),
+	Vector2(98, 525),
+	Vector2(68, 230),
+	Vector2(350, 130),
+	Vector2(877, 230),
 ]
 
-const POT_POS = Vector2(400, 405)
+const POT_POS = Vector2(360, 405)
 
 const CR = {
 	"TEAL": Vector2i(0, 0),

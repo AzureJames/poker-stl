@@ -11,7 +11,7 @@ func build_ui():
 	var canvas = $CanvasLayer
 
 	var bg = ColorRect.new()
-	bg.offset_right = 1600
+	bg.offset_right = 1120
 	bg.offset_bottom = 800
 	bg.color = Color(0.31422675, 0.43944678, 0.14869595, 1)
 	canvas.add_child(bg)
@@ -20,9 +20,9 @@ func build_ui():
 	var bevel = load("res://asset/grey_bevel_normal.png")
 
 	var title_shadow = RichTextLabel.new()
-	title_shadow.offset_left = 400
+	title_shadow.offset_left = 280
 	title_shadow.offset_top = 32
-	title_shadow.offset_right = 1200
+	title_shadow.offset_right = 840
 	title_shadow.offset_bottom = 92
 	title_shadow.add_theme_color_override("default_color", Color(0.45291597, 0.22542924, 0.07002995, 1))
 	title_shadow.add_theme_font_override("normal_font", font)
@@ -33,9 +33,9 @@ func build_ui():
 	canvas.add_child(title_shadow)
 
 	var title = RichTextLabel.new()
-	title.offset_left = 400
+	title.offset_left = 280
 	title.offset_top = 30
-	title.offset_right = 1200
+	title.offset_right = 840
 	title.offset_bottom = 90
 	title.add_theme_color_override("default_color", Color(1, 0.8682245, 0.7563993, 1))
 	title.add_theme_font_override("normal_font", font)
@@ -47,9 +47,9 @@ func build_ui():
 
 	var back_btn = Button.new()
 	back_btn.z_index = 7
-	back_btn.offset_left = 27
+	back_btn.offset_left = 19
 	back_btn.offset_top = 25
-	back_btn.offset_right = 147
+	back_btn.offset_right = 103
 	back_btn.offset_bottom = 70
 	back_btn.add_theme_color_override("font_color", Color(0, 0, 0, 1))
 	back_btn.add_theme_font_override("font", font)
@@ -74,8 +74,8 @@ func build_ui():
 	back_btn.add_child(back_bevel)
 
 	var vbox = VBoxContainer.new()
-	vbox.position = Vector2(500, 160)
-	vbox.size = Vector2(600, 500)
+	vbox.position = Vector2(350, 160)
+	vbox.size = Vector2(420, 500)
 	vbox.add_theme_constant_override("separation", 30)
 	canvas.add_child(vbox)
 
@@ -121,7 +121,7 @@ func _on_discard_toggled(enabled: bool, btn: CheckButton):
 func _build_speed_buttons() -> Control:
 	var hbox = HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 10)
-	var speeds = [0.5, 1.0, 1.5]
+	var speeds = [0.2, 1.0, 2.0]
 	var font = load("res://asset/fonts/VT323-Regular.ttf")
 	var bevel = load("res://asset/grey_bevel_normal.png")
 	var bevel_hover = load("res://asset/grey_bevel_hover.png")
@@ -171,7 +171,8 @@ func _build_music_toggle() -> Control:
 	return btn
 
 func _on_music_toggled(enabled: bool):
-	Globals.music = enabled
+	if !enabled: %Music.stop()
+	else: %Music.play()
 
 func _build_difficulty_row() -> Control:
 	var hbox = HBoxContainer.new()

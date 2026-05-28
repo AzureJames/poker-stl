@@ -13,7 +13,6 @@
 [ext_resource type="Script" uid="uid://cpiqd7vf7188y" path="res://script/ui_manager.gd" id="12_mswub"]
 [ext_resource type="AudioStream" uid="uid://cqpn1o2klgp4k" path="res://asset/Audio/pokerIntro4.mp3" id="13_hybxs"]
 [ext_resource type="SpriteFrames" uid="uid://cfir1ikio8x7a" path="res://asset/dealer_sprite_frames.tres" id="13_mswub"]
-[ext_resource type="Texture2D" uid="uid://cde3twfeou1ix" path="res://asset/Chips/StackRed.png" id="14_hybxs"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4j5ol"]
 
@@ -223,13 +222,8 @@ z_index = 2
 position = Vector2(397, 217)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("13_mswub")
+animation = &"shoot2"
 autoplay = "default"
-
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=210738960]
-z_index = 2
-position = Vector2(178, 536)
-texture = ExtResource("14_hybxs")
-centered = false
 
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_pressed"]
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button2" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_2_pressed"]

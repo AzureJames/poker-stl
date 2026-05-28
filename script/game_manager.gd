@@ -187,6 +187,9 @@ func build_deck():
 	deck.shuffle()
 
 func deal_phase():
+	%Dealer.animation = "deal"
+	%Dealer.play()
+	
 	if Globals.sudden_death:
 		$UIManager.announce("SUDDEN DEATH!", 60)
 		if RELEASE_MODE: await get_tree().create_timer(1.5 * time_scale).timeout
@@ -247,6 +250,9 @@ func deal_phase():
 	for card in anim_cards:
 		remove_child(card)
 		card.queue_free()
+		
+	%Dealer.animation = "default"
+	%Dealer.play()
 
 func flop_phase(num_cards: int):
 	if community_cards.size() < num_cards:
@@ -374,6 +380,7 @@ func human_betting_turn(player_idx: int, turn_count: int):
 				$SoundManager.play_card_shove()
 				$ChipManager.update_player_pile(player_idx, 0)
 				$UIManager.announce("You're eliminated!", 45)
+				%Dealer.animation = "shoot2"
 			else:
 				player_folded[player_idx] = true
 				$UIManager.player_panel[player_idx].name_label.add_theme_color_override("font_color", Color.GRAY)
@@ -857,6 +864,7 @@ func showdown_phase():
 			$UIManager.announce("You are eliminated!", 45)
 		else:
 			$UIManager.announce("%s is eliminated!" % player_names[worst], 45)
+			%Dealer.animation = "shoot2"
 		$UIManager.update_chip_labels()
 		if RELEASE_MODE: await get_tree().create_timer(1.2 * time_scale).timeout
 

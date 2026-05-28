@@ -105,7 +105,7 @@ func build_ui():
 	ab_bg.patch_margin_right = 4
 	ab_bg.patch_margin_bottom = 4
 	ab_bg.position = Vector2(25, 630)
-	ab_bg.size = Vector2(400, 100)
+	ab_bg.size = Vector2(409, 100)
 	game.add_child(ab_bg)
 
 	action_bar = Control.new()
@@ -440,6 +440,7 @@ func make_button(text: String, pos: Vector2, txt: String) -> Button:
 func make_card_sprite() -> TextureRect:
 	var trt = TextureRect.new()
 	trt.size = Vector2(Globals.CARD_W, Globals.CARD_H)
+	trt.z_index = 5
 	trt.custom_minimum_size = Vector2(Globals.CARD_W, Globals.CARD_H)
 	trt.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	trt.stretch_mode = TextureRect.STRETCH_SCALE
@@ -566,6 +567,8 @@ func hide_steal_ui():
 	overlay_container.visible = false
 
 func animate_new_cards(player_idx: int, count: int):
+	%Dealer.animation = "deal"
+	%Dealer.play()
 	if count <= 0:
 		return
 	var game = get_parent()
@@ -586,6 +589,8 @@ func animate_new_cards(player_idx: int, count: int):
 	for tr in anim_cards:
 		game.remove_child(tr)
 		tr.queue_free()
+	%Dealer.animation = "default"
+	%Dealer.play()
 
 func set_community_card(idx: int, suit: int, rank: int, pos: Vector2):
 	if idx >= 0 and idx < community_nodes.size():

@@ -1,10 +1,18 @@
 extends Node
 
 const ATLAS_PATH = "res://asset/Chips/Chips A Outline - Flat 64x72.png"
+const STACK_PATH = "res://asset/Chips/StackRed.png"
+const STACK_PATH2 = "res://asset/Chips/StackGray.png"
+const STACK_PATH3 = "res://asset/Chips/StackGreen.png"
+const STACK_PATH4 = "res://asset/Chips/StackBlue.png"
 const CHIP_W = 48
 const CHIP_H = 54
 
 var _atlas: Texture2D
+var _stack_tex: Texture2D
+var _stack_tex2: Texture2D
+var _stack_tex3: Texture2D
+var _stack_tex4: Texture2D
 const CHIP_HEIGHT = 5
 
 const PILE_POS: Array[Vector2] = [
@@ -14,7 +22,7 @@ const PILE_POS: Array[Vector2] = [
 	Vector2(877, 230),
 ]
 
-const POT_POS = Vector2(360, 405)
+const POT_POS = Vector2(340, 405)
 
 const CR = {
 	"TEAL": Vector2i(0, 0),
@@ -30,6 +38,10 @@ var _pot_contributions: Array[int] = [0, 0, 0, 0]
 
 func _ready():
 	_atlas = load(ATLAS_PATH)
+	_stack_tex = load(STACK_PATH)
+	_stack_tex2 = load(STACK_PATH2)
+	_stack_tex3 = load(STACK_PATH3)
+	_stack_tex4 = load(STACK_PATH4)
 	for i in range(4):
 		var c = Control.new()
 		c.name = (&"Pile%d" % i)
@@ -55,6 +67,19 @@ func _make_chip(col: int, row: int) -> TextureRect:
 	tr.stretch_mode = TextureRect.STRETCH_SCALE
 	return tr
 
+func _make_stack(idx) -> TextureRect:
+	var tr = TextureRect.new()
+	match idx:
+		0: tr.texture = _stack_tex
+		1: tr.texture = _stack_tex2
+		2: tr.texture = _stack_tex3
+		3: tr.texture = _stack_tex4
+
+	tr.size = Vector2(CHIP_W, CHIP_H + 5 * CHIP_HEIGHT)
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	return tr
+
 func _player_style(idx: int) -> Vector2i:
 	var styles = [CR.GREY, CR.TEAL, CR.GREEN, CR.BLUE]
 	return styles[idx]
@@ -66,10 +91,18 @@ func _build_pile(player_idx: int, chip_count: int):
 		c.queue_free()
 	var cr = _player_style(player_idx)
 	var n = clampi(chip_count / 100 + 1, 2, 17)
-	for i in range(n):
-		var trc = _make_chip(cr.x, cr.y)
-		trc.position = Vector2(0, -i * CHIP_HEIGHT)
-		pile.add_child(trc)
+	var i := 0
+	while i < n:
+		if n - i >= 6: #STACK
+			var trc = _make_stack(player_idx)
+			trc.position = Vector2(1, -(i + 5) * CHIP_HEIGHT)
+			pile.add_child(trc)
+			i += 6
+		else: #CHIP
+			var trc = _make_chip(cr.x, cr.y)
+			trc.position = Vector2(0, -i * CHIP_HEIGHT)
+			pile.add_child(trc)
+			i += 1
 
 func _clear_pot():
 	for c in _pot_container.get_children():

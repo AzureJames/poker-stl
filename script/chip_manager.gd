@@ -5,6 +5,7 @@ const CHIP_W = 48
 const CHIP_H = 54
 
 var _atlas: Texture2D
+const CHIP_HEIGHT = 5
 
 const PILE_POS: Array[Vector2] = [
 	Vector2(98, 525),
@@ -67,7 +68,7 @@ func _build_pile(player_idx: int, chip_count: int):
 	var n = clampi(chip_count / 100 + 1, 2, 17)
 	for i in range(n):
 		var trc = _make_chip(cr.x, cr.y)
-		trc.position = Vector2(0, -i * 5)
+		trc.position = Vector2(0, -i * CHIP_HEIGHT)
 		pile.add_child(trc)
 
 func _clear_pot():
@@ -104,7 +105,7 @@ func update_pot(total_pot: int):
 			var chip_in_pile = chip_idx % 8
 			var pile_col = pile % 6
 			var pile_row = pile / 6
-			trpot.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * 5)
+			trpot.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * CHIP_HEIGHT)
 			_pot_container.add_child(trpot)
 			chip_idx += 1
 	while chip_idx < count:
@@ -114,7 +115,7 @@ func update_pot(total_pot: int):
 		var chip_in_pile = chip_idx % 8
 		var pile_col = pile % 6
 		var pile_row = pile / 6
-		trp.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * 5)
+		trp.position = Vector2(pile_col * 53, pile_row * 50 - chip_in_pile * CHIP_HEIGHT)
 		_pot_container.add_child(trp)
 		chip_idx += 1
 

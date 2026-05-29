@@ -47,6 +47,7 @@ var sudden_death_round := 0
 func _ready():
 	randomize()
 	$UIManager.build_ui()
+	_on_difficulty_changed(1)
 
 func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
@@ -196,7 +197,7 @@ func deal_phase():
 	$UIManager.announce("Dealing...")
 	build_deck()
 
-	var center_pos = Vector2(441, 260)
+	var center_pos = %Dealer.position
 
 	var targets = []
 	for i in range(NUM_PLAYERS):
@@ -260,6 +261,18 @@ func flop_phase(num_cards: int):
 		community_cards.append(card)
 	var idx = community_cards.size() - 1
 	var card_pos = Vector2(665 + idx * 89, 309) 
+	var anim_cards = Node
+	var tr = $UIManager.make_card_back_sprite()
+	tr.position = %Dealer.position
+	add_child(tr)
+	var tween = create_tween()
+	tween.tween_property(tr, "position", card_pos - Vector2(Globals.CARD_W * 0.5, Globals.CARD_H * 0.5), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await get_tree().create_timer(0.54 * time_scale).timeout
+	tr.queue_free()
+	
+	
+	
+
 	$UIManager.set_community_card(idx, community_cards[idx].suit, community_cards[idx].rank, card_pos)
 	$SoundManager.play_card_place()
 	$UIManager.announce("Flop: %s" % Globals.card_name(community_cards[idx].suit, community_cards[idx].rank) if community_cards.size() > 0 else "")

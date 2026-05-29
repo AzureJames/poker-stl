@@ -2,6 +2,7 @@ class_name AIEasy
 extends AIBase
 
 var under_this_folds := .31
+var community_local = []
 
 func randomize_personality():
 	aggro = 0.2 + randf() * 0.2
@@ -14,10 +15,12 @@ func get_betting_action(hand: Array, community: Array, pot: int,
 
 	var call_amt = max(0, current_bet - player_bet)
 	var strength = _eval_strength(hand, community)
+	print(strength)
+	community_local = community
 	var pot_for_bet = pot + player_bet
 	var max_bet = min(max_bets, player_chips)
 	var can_raise = turn_count < 4
-
+	
 	var raise_thresh = 0.75 - aggro * 0.3
 	var semi_thresh = 0.5 - aggro * 0.25
 	var call_thresh = 0.25 - looseness * 0.15
@@ -48,6 +51,8 @@ func get_steal_choice(own_hand: Array, target_hand: Array) -> int:
 func get_discard_indices(hand: Array) -> Array[int]:
 	if hand.is_empty():
 		return []
+	if _eval_strength(hand, community_local) > .3:
+		return [0,1,2,3] #dump good hand
 	return [randi() % hand.size()]
 
 func _eval_strength(hand: Array, community: Array) -> float:

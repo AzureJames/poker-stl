@@ -60,7 +60,7 @@ func build_ui():
 	pot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pot_label.add_theme_font_size_override("font_size", 26)
 	pot_label.add_theme_color_override("font_color", Color.WHITE)
-	pot_label.position = Vector2(375, 220)
+	pot_label.position = Vector2(375, 300)
 	pot_label.size = Vector2(140, 40)
 	pot_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	game.add_child(pot_label)

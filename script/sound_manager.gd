@@ -17,6 +17,7 @@ var _chips_collide: Array[AudioStream] = []
 var _chips_handle: Array[AudioStream] = []
 var _chips_stack: Array[AudioStream] = []
 var _win: Array[AudioStream] = []
+var _lose: Array[AudioStream] = []
 
 func _ready():
 	for i in range(PLAYER_COUNT):
@@ -47,6 +48,7 @@ func _load_sounds():
 	_chips_handle = _load_group("res://asset/Audio/chips-handle", 6)
 	_chips_stack = _load_group("res://asset/Audio/chips-stack", 6)
 	_win = [load("res://asset/Audio/win.wav")] 
+	_lose = [load("res://asset/Audio/lose.mp3")] 
 
 func _get_player() -> AudioStreamPlayer:
 	for p in _players:
@@ -64,6 +66,9 @@ func _play(sounds: Array[AudioStream], vol_db: float = 0.0):
 	
 func play_win(vol_db: float = 0.0):
 	_play(_win, 5)
+	
+func play_lose(vol_db: float = 0.0):
+	_play(_lose, 0)
 
 func play_card_slide(vol_db: float = 0.0):
 	_play(_card_slide, vol_db)

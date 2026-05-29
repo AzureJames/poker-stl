@@ -120,7 +120,7 @@ func add_pot_contribution(player_idx: int, amount: int):
 
 func update_pot(total_pot: int):
 	_clear_pot()
-	var count = max(2, total_pot / 10)
+	var count =  total_pot / 10 #max(2, total_pot / 10)
 	var total_contrib = 0
 	for c in _pot_contributions:
 		total_contrib += c

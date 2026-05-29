@@ -41,7 +41,7 @@ var discard_selected: Array = []
 var steal_choice: int = -1
 
 var deck: Array = []
-var time_scale = .2
+var time_scale = .1
 var sudden_death_round := 0
 
 func _ready():
@@ -775,12 +775,13 @@ func showdown_phase():
 		player_chips[winner] += pot
 		$ChipManager.update_player_pile(winner, player_chips[winner])
 		$ChipManager.update_pot(0)
-		$UIManager.announce("%s wins (everyone folded)!" % player_names[winner], 45)
 		if player_names[winner] == "You":
 			$UIManager.announce("%s win (everyone folded)!" % player_names[winner], 45)
+			%Dealer.animation = "win"
+			$SoundManager.play_win()
 		else:
 			$UIManager.announce("%s wins (everyone folded)!" % player_names[winner], 45)
-		$SoundManager.play_win()
+			$SoundManager.play_lose()
 		return
 
 	var results = []
@@ -846,13 +847,15 @@ func showdown_phase():
 			$ChipManager.update_player_pile(t.player, player_chips[t.player])
 	$ChipManager.update_pot(0)
 
-	if best.player == 0:
-		$UIManager.announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)], 45)
-		$SoundManager.play_win()
-	else:
-		$UIManager.announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)], 45)
-		$SoundManager.play_win()
-	$UIManager.update_chip_labels()
+	if Globals.sudden_death == false:
+		if best.player == 0:
+			$UIManager.announce("%s win with %s!" % [player_names[best.player], hand_result_name(best.result)], 45)
+			$SoundManager.play_win()
+			%Dealer.animation = "win"
+		else:
+			$UIManager.announce("%s wins with %s!" % [player_names[best.player], hand_result_name(best.result)], 45)
+			$SoundManager.play_lose()
+		$UIManager.update_chip_labels()
 
 	if Globals.sudden_death and active_players.size() >= 2:
 		var worst = results[-1].player
@@ -862,9 +865,11 @@ func showdown_phase():
 		sudden_death_round += 1
 		if player_names[worst] == "You":
 			$UIManager.announce("You are eliminated!", 45)
+			$SoundManager.play_lose()
 		else:
 			$UIManager.announce("%s is eliminated!" % player_names[worst], 45)
-			%Dealer.animation = "shoot2"
+			$SoundManager.play_win()
+		%Dealer.animation = "shoot2"
 		$UIManager.update_chip_labels()
 		if RELEASE_MODE: await get_tree().create_timer(1.2 * time_scale).timeout
 

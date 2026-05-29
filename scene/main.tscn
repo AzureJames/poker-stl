@@ -222,7 +222,7 @@ z_index = 2
 position = Vector2(397, 217)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("13_mswub")
-animation = &"shoot2"
+animation = &"win"
 autoplay = "default"
 
 [connection signal="pressed" from="StartMenu/ColorRect/HBoxContainer/Button" to="StartMenu/ColorRect/HBoxContainer" method="_on_button_pressed"]

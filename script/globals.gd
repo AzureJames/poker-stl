@@ -10,6 +10,7 @@ enum Suit {
 var playing := false
 var sudden_death := false
 var music := true
+var diff := 1
 
 const SUIT_SYMBOL = {
 	Suit.CLUBS: "♣",

@@ -3,7 +3,7 @@ extends Control
 const NUM_PLAYERS = 4
 const STARTING_CHIPS = 1000
 
-const ANTE_PERCENT = 0.05
+const ANTE_PERCENT = 0.025
 const MAX_BET = 100
 const STEAL_TIMER = 22.0
 const RELEASE_MODE := true
@@ -167,7 +167,7 @@ func ante_phase():
 			$SoundManager.play_card_shove()
 			$ChipManager.update_player_pile(i, player_chips[i])
 			$UIManager.announce("%s folds" % player_names[i])
-		var ante = min(20, player_chips[i])
+		var ante = min(25, player_chips[i])
 		player_chips[i] -= ante
 		pot += ante
 		$UIManager.player_panel[i].bet_label.text = "Ante: %d" % ante
@@ -188,8 +188,7 @@ func build_deck():
 	deck.shuffle()
 
 func deal_phase():
-	%Dealer.animation = "deal"
-	%Dealer.play()
+
 	
 	if Globals.sudden_death:
 		$UIManager.announce("SUDDEN DEATH!", 60)
@@ -222,6 +221,8 @@ func deal_phase():
 			nodes.append(trb)
 		$UIManager.player_hand_nodes[i] = nodes
 
+	%Dealer.animation = "deal"
+	%Dealer.play()
 	for round in range(5):
 		for i in range(NUM_PLAYERS):
 			var card_data = deck.pop_back()
@@ -494,6 +495,7 @@ func _wait_for_human_action() -> String:
 
 func _on_difficulty_changed(value: float):
 	var idx = int(value)
+	Globals.diff = idx
 	var scripts = [
 		preload("res://script/ai/ai_easy.gd"),
 		preload("res://script/ai/ai_medium.gd"),
@@ -747,9 +749,20 @@ func steal_phase():
 	for i in range(NUM_PLAYERS):
 		if steal_decisions[i] >= 0:
 			var target = steal_targets[i]
-			var card = player_hands[target][steal_decisions[i]]
-			player_hands[target].remove_at(steal_decisions[i])
-			player_hands[i].append(card)
+			var card_data = player_hands[target][steal_decisions[i]]
+			var card_node = $UIManager.player_hand_nodes[target][steal_decisions[i]]
+			var from_pos = card_node.global_position
+
+			if i == 0: #player
+				card_node.reparent(self) 
+				card_node.position = from_pos
+				var choicetween = create_tween()
+				choicetween.tween_property(card_node, "position", PLAYER_POSITIONS[0], 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+				choicetween.tween_callback(card_node.queue_free)
+
+			player_hands[target].remove_at(steal_decisions[i]) 
+			await get_tree().create_timer(.5)
+			player_hands[i].append(card_data)
 
 	$UIManager.stealtimer_label.visible = false
 	$UIManager.steal_overlay.visible = false

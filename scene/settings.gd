@@ -33,7 +33,7 @@ func _ready() -> void:
 
 	for btn in difficulty_btns:
 		btn.pressed.connect(_on_difficulty_changed.bind(difficulty_btns.find(btn)))
-
+	$CanvasLayer/VBox/DiffRow/DiffBtns.get_child(Globals.diff).button_pressed = true
 
 func _on_discard_toggled():
 	var btn = %DiscardToggle

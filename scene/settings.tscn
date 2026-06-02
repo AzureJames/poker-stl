@@ -25,7 +25,7 @@ layer = 6
 visible = false
 
 [node name="BG" type="ColorRect" parent="CanvasLayer" unique_id=360830360]
-offset_right = 1120.0
+offset_right = 1420.0
 offset_bottom = 800.0
 color = Color(0.31422675, 0.43944678, 0.14869595, 1)
 metadata/_edit_lock_ = true
@@ -71,7 +71,7 @@ z_index = -1
 layout_mode = 0
 offset_left = 1.0
 offset_top = 1.0
-offset_right = 121.0
+offset_right = 94.0
 offset_bottom = 46.0
 texture = ExtResource("3_0ha6")
 patch_margin_left = 4

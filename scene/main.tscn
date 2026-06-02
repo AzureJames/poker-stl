@@ -101,8 +101,8 @@ text = "  Rules   "
 [node name="NinePatchRect" type="NinePatchRect" parent="StartMenu/ColorRect/HBoxContainer/Button2" unique_id=589129678]
 z_index = -1
 layout_mode = 0
-offset_left = 4.0
-offset_right = 123.0
+offset_left = 2.0
+offset_right = 125.0
 offset_bottom = 43.0
 texture = ExtResource("4_0ha60")
 patch_margin_left = 4
@@ -163,8 +163,8 @@ text = "  Sdn Death  "
 [node name="NinePatchRect" type="NinePatchRect" parent="StartMenu/ColorRect/HBoxContainer/Button5" unique_id=1374375434]
 z_index = -1
 layout_mode = 0
-offset_left = 6.0
-offset_right = 160.0
+offset_left = -2.0
+offset_right = 165.0
 offset_bottom = 43.0
 texture = ExtResource("4_0ha60")
 patch_margin_left = 4
